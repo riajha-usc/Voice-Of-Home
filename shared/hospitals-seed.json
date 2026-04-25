@@ -1,0 +1,113 @@
+{
+  "hospitals": [
+    {
+      "id": "hosp_uclamc",
+      "name": "UCLA Medical Center",
+      "address": "757 Westwood Plaza, Los Angeles, CA 90095",
+      "city": "Los Angeles",
+      "state": "CA",
+      "phone": "(310) 825-9111",
+      "departments": ["Internal Medicine", "Cardiology", "Oncology", "Family Medicine", "Emergency", "Pediatrics"]
+    },
+    {
+      "id": "hosp_cedars",
+      "name": "Cedars-Sinai Medical Center",
+      "address": "8700 Beverly Blvd, Los Angeles, CA 90048",
+      "city": "Los Angeles",
+      "state": "CA",
+      "phone": "(310) 423-3277",
+      "departments": ["Internal Medicine", "Cardiology", "Nephrology", "Geriatrics", "Emergency"]
+    },
+    {
+      "id": "hosp_keck",
+      "name": "Keck Hospital of USC",
+      "address": "1500 San Pablo St, Los Angeles, CA 90033",
+      "city": "Los Angeles",
+      "state": "CA",
+      "phone": "(800) 872-2273",
+      "departments": ["Internal Medicine", "Oncology", "Pulmonology", "Family Medicine"]
+    }
+  ],
+  "doctors": [
+    {
+      "id": "dr_patel",
+      "name": "Dr. Anjali Patel, MD",
+      "specialty": "Internal Medicine",
+      "hospital_id": "hosp_uclamc",
+      "license_number": "CA-A123456",
+      "npi": "1558344301",
+      "email": "a.patel@mednet.ucla.edu",
+      "languages_spoken": ["English", "Hindi", "Gujarati"]
+    },
+    {
+      "id": "dr_nguyen",
+      "name": "Dr. Thuy Nguyen, MD",
+      "specialty": "Family Medicine",
+      "hospital_id": "hosp_uclamc",
+      "license_number": "CA-A987654",
+      "npi": "1184829271",
+      "email": "t.nguyen@mednet.ucla.edu",
+      "languages_spoken": ["English", "Vietnamese"]
+    },
+    {
+      "id": "dr_chen",
+      "name": "Dr. Wei Chen, MD",
+      "specialty": "Cardiology",
+      "hospital_id": "hosp_uclamc",
+      "license_number": "CA-A445566",
+      "npi": "1992837164",
+      "email": "w.chen@mednet.ucla.edu",
+      "languages_spoken": ["English", "Mandarin", "Cantonese"]
+    },
+    {
+      "id": "dr_garcia",
+      "name": "Dr. Elena Garcia, MD",
+      "specialty": "Internal Medicine",
+      "hospital_id": "hosp_cedars",
+      "license_number": "CA-A778899",
+      "npi": "1720938471",
+      "email": "elena.garcia@cshs.org",
+      "languages_spoken": ["English", "Spanish"]
+    },
+    {
+      "id": "dr_kim",
+      "name": "Dr. Jun Kim, MD",
+      "specialty": "Nephrology",
+      "hospital_id": "hosp_cedars",
+      "license_number": "CA-A334455",
+      "npi": "1827364509",
+      "email": "j.kim@cshs.org",
+      "languages_spoken": ["English", "Korean"]
+    },
+    {
+      "id": "dr_hassan",
+      "name": "Dr. Layla Hassan, MD",
+      "specialty": "Geriatrics",
+      "hospital_id": "hosp_cedars",
+      "license_number": "CA-A667788",
+      "npi": "1456372891",
+      "email": "l.hassan@cshs.org",
+      "languages_spoken": ["English", "Arabic", "Farsi"]
+    },
+    {
+      "id": "dr_rodriguez",
+      "name": "Dr. Marcos Rodriguez, MD",
+      "specialty": "Oncology",
+      "hospital_id": "hosp_keck",
+      "license_number": "CA-A556677",
+      "npi": "1938475610",
+      "email": "m.rodriguez@med.usc.edu",
+      "languages_spoken": ["English", "Spanish", "Portuguese"]
+    },
+    {
+      "id": "dr_singh",
+      "name": "Dr. Priya Singh, MD",
+      "specialty": "Pulmonology",
+      "hospital_id": "hosp_keck",
+      "license_number": "CA-A112233",
+      "npi": "1564839271",
+      "email": "p.singh@med.usc.edu",
+      "languages_spoken": ["English", "Hindi", "Punjabi"]
+    }
+  ]
+}

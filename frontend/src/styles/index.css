@@ -1,0 +1,285 @@
+@import "tailwindcss";
+
+@theme {
+  /* Warm color palette from wireframe */
+  --color-cream-50: #FFF9F2;
+  --color-cream-100: #FFF3E6;
+  --color-cream-200: #FFE8CC;
+  --color-cream-300: #FFD9AD;
+
+  --color-coral-50: #FFF0ED;
+  --color-coral-100: #FFD5CC;
+  --color-coral-200: #FFB5A8;
+  --color-coral-300: #FF8C7A;
+  --color-coral-400: #E8695A;
+  --color-coral-500: #D05545;
+  --color-coral-600: #B84035;
+
+  --color-teal-50: #E8F5F0;
+  --color-teal-100: #C3E8DC;
+  --color-teal-200: #8DD4BE;
+  --color-teal-300: #5BBF9E;
+  --color-teal-400: #3AA882;
+  --color-teal-500: #1E8C66;
+  --color-teal-600: #0F6E50;
+  --color-teal-700: #085040;
+
+  --color-slate-50: #F7F6F3;
+  --color-slate-100: #EBE9E4;
+  --color-slate-200: #D6D3CC;
+  --color-slate-300: #B8B4AA;
+  --color-slate-400: #8A8680;
+  --color-slate-500: #5E5B56;
+  --color-slate-600: #3D3B37;
+  --color-slate-700: #2A2825;
+  --color-slate-800: #1A1917;
+
+  --color-amber-50: #FFF8EB;
+  --color-amber-100: #FFECC7;
+  --color-amber-400: #E5A030;
+  --color-amber-600: #B07818;
+
+  --color-danger-50: #FEF2F2;
+  --color-danger-500: #E24B4A;
+  --color-danger-700: #991F1F;
+
+  --color-info-50: #EFF6FF;
+  --color-info-500: #3B82F6;
+  --color-info-700: #1D4ED8;
+
+  /* Typography */
+  --font-sans: "SF Pro Display", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Shadows - warm toned */
+  --shadow-card: 0 1px 3px rgba(160, 140, 120, 0.08), 0 1px 2px rgba(160, 140, 120, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(160, 140, 120, 0.12), 0 2px 4px rgba(160, 140, 120, 0.08);
+  --shadow-modal: 0 8px 30px rgba(120, 100, 80, 0.15);
+
+  /* Border radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-cream-50);
+  color: var(--color-slate-700);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism card effect from wireframe */
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.glass-card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* Warm solid card */
+.warm-card {
+  background: white;
+  border: 1px solid var(--color-cream-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* Alert cards */
+.alert-critical {
+  background: var(--color-danger-50);
+  border-left: 4px solid var(--color-danger-500);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.alert-warning {
+  background: var(--color-amber-50);
+  border-left: 4px solid var(--color-amber-400);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.alert-success {
+  background: var(--color-teal-50);
+  border-left: 4px solid var(--color-teal-400);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* Language pills */
+.lang-pill {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid var(--color-cream-200);
+  background: white;
+  color: var(--color-slate-500);
+}
+
+.lang-pill:hover {
+  border-color: var(--color-coral-200);
+  color: var(--color-coral-500);
+}
+
+.lang-pill.active {
+  background: var(--color-coral-400);
+  color: white;
+  border-color: var(--color-coral-400);
+}
+
+/* Warm button styles */
+.btn-primary {
+  background: var(--color-coral-400);
+  color: white;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: var(--color-coral-500);
+}
+
+.btn-primary:disabled {
+  background: var(--color-slate-200);
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-slate-600);
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 14px;
+  border: 1px solid var(--color-cream-200);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-outline:hover {
+  border-color: var(--color-coral-300);
+  color: var(--color-coral-500);
+}
+
+/* Mic button from wireframe */
+.mic-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-coral-50);
+  border: 2px solid var(--color-coral-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mic-btn:hover {
+  background: var(--color-coral-100);
+  transform: scale(1.05);
+}
+
+.mic-btn.recording {
+  background: var(--color-coral-400);
+  border-color: var(--color-coral-500);
+  animation: pulse-mic 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-mic {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 105, 90, 0.3); }
+  50% { box-shadow: 0 0 0 12px rgba(232, 105, 90, 0); }
+}
+
+/* Badge styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: var(--color-teal-50);
+  color: var(--color-teal-600);
+}
+
+.badge-warning {
+  background: var(--color-amber-50);
+  color: var(--color-amber-600);
+}
+
+.badge-danger {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
+
+.badge-info {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+
+/* Loading spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-cream-200);
+  border-top-color: var(--color-coral-400);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Bottom nav from wireframe */
+.bottom-nav {
+  display: flex;
+  border-top: 1px solid var(--color-cream-200);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+}
+
+.bottom-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 6px;
+  font-size: 11px;
+  color: var(--color-slate-400);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.bottom-nav a.active {
+  color: var(--color-coral-400);
+}
+
+.bottom-nav a .nav-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-bottom: 3px;
+  background: var(--color-slate-200);
+}
+
+.bottom-nav a.active .nav-dot {
+  background: var(--color-coral-400);
+}

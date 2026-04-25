@@ -1,0 +1,19 @@
+{
+  "name": "voices-of-home",
+  "version": "1.0.0",
+  "description": "Multi-Agent Cultural Intelligence Platform for Healthcare | LA Hacks 2026",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "mcp-server"
+  ],
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "setup": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ../mcp-server && npm install"
+  },
+  "keywords": ["healthcare", "cultural-intelligence", "multi-agent", "LA-Hacks-2026", "fetch-ai", "agentverse"],
+  "license": "MIT"
+}

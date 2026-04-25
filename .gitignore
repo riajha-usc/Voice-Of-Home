@@ -1,0 +1,179 @@
+# ==============================================================================
+# Voices of Home — .gitignore
+# Goal: never commit credentials, API tokens, patient data, or local-only files.
+# ==============================================================================
+
+# ----- Environment files & secrets (NEVER COMMIT) -----
+.env
+.env.*
+!.env.example
+*.env
+*.env.local
+*.env.development
+*.env.production
+*.env.test
+.env.example
+secrets.*
+secrets/
+config/secrets/
+*.secret
+*.secrets
+
+# ----- API keys, tokens, credentials -----
+*api-key*
+*api_key*
+*apikey*
+*api-token*
+*api_token*
+*access-token*
+*access_token*
+*credentials*
+!**/credentials.template.*
+auth.json
+service-account*.json
+gcp-key*.json
+firebase-adminsdk-*.json
+.anthropic
+.openai
+.huggingface
+.elevenlabs
+.cloudinary
+.gemini
+
+# ----- Certificates & private keys -----
+*.pem
+*.key
+*.crt
+*.cert
+*.cer
+*.der
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+*.gpg
+*.asc
+
+# ----- Patient / session data (local fallback persistence) -----
+backend/.data/
+backend/data/
+**/.data/sessions.json
+**/.data/patients.json
+**/.data/care_circles.json
+*.sqlite
+*.sqlite3
+*.db
+
+# ----- Audio / image cache (may contain patient voice or photos) -----
+backend/audio/
+backend/uploads/
+backend/cache/
+**/uploads/
+**/tmp_audio/
+
+# ----- Node / npm -----
+node_modules/
+.npm/
+.yarn/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ----- Build output -----
+dist/
+dist-verify/
+dist-ssr/
+build/
+out/
+.next/
+.nuxt/
+.vite/
+.turbo/
+.cache/
+.parcel-cache/
+
+# ----- Logs -----
+*.log
+logs/
+*.log.*
+
+# ----- Python (Fetch.ai agents) -----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+*.egg-info/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+
+# ----- uAgent / Fetch.ai local state -----
+agents/.agent_data/
+agents/storage/
+*.agent
+
+# ----- IDE / editor -----
+.vscode/
+!.vscode/settings.template.json
+!.vscode/extensions.json
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ----- OS noise -----
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ----- Test / coverage -----
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+
+# ----- Local-only configs / overrides -----
+*.local
+.local/
+local.config.*
+local.settings.*
+
+# ----- Lockfile noise from secondary tools (keep main lockfiles tracked) -----
+.pnp.*
+yarn.lock.bak
+
+# ----- Misc -----
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+.history/

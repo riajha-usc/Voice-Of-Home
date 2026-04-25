@@ -1,0 +1,238 @@
+import { useState, useRef } from "react";
+import { Camera, Upload, Leaf, Check, X, Shield, Flame, Droplet, Wheat } from "lucide-react";
+import { LanguageSelector, LoadingDots, ListenButton, getLanguageName } from "../components/shared/UIComponents";
+import { useSession } from "../hooks/useSession";
+import { api } from "../utils/api";
+import { t, isRTL } from "../utils/translations";
+
+export default function DietPage() {
+  const { session, updateLanguage, addDietaryResult } = useSession();
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageBase64, setImageBase64] = useState(null);
+  const [cloudinaryUrl, setCloudinaryUrl] = useState(null);
+  const [stage, setStage] = useState("idle"); // idle | uploading | analyzing
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
+  const rtl = isRTL(session.language);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setResult(null);
+    setError(null);
+    setCloudinaryUrl(null);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setImagePreview(ev.target.result);
+      setImageBase64(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAnalyze = async () => {
+    if (!imageBase64) return;
+    setError(null);
+    try {
+      // 1) Upload to Cloudinary → get URL
+      setStage("uploading");
+      let sourceForGemini = imageBase64;
+      try {
+        const uploadData = await api.uploadFood(imageBase64);
+        if (uploadData.url) {
+          setCloudinaryUrl(uploadData.url);
+          // If it's a real Cloudinary URL (http), pass the URL so the backend fetches it.
+          // Otherwise (passthrough), the response URL is the base64 data URL itself.
+          sourceForGemini = uploadData.url;
+        }
+      } catch (uploadErr) {
+        console.warn("[DietPage] Cloudinary upload failed, falling back to base64:", uploadErr);
+      }
+
+      // 2) Gemini vision analysis
+      setStage("analyzing");
+      const data = await api.analyzeDiet(sourceForGemini, session.language);
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setResult(data);
+        addDietaryResult(data);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setStage("idle");
+    }
+  };
+
+  const resetAll = () => {
+    setImagePreview(null);
+    setImageBase64(null);
+    setCloudinaryUrl(null);
+    setResult(null);
+    setError(null);
+  };
+
+  return (
+    <div className="p-6 max-w-2xl mx-auto pb-24 lg:pb-6" dir={rtl ? "rtl" : "ltr"}>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "var(--color-teal-100)" }}>
+          <Camera size={20} style={{ color: "var(--color-teal-600)" }} />
+        </div>
+        <div>
+          <h1 className="text-xl font-semibold" style={{ color: "var(--color-slate-800)" }}>{t(session.language, "diet_title")}</h1>
+          <p className="text-sm" style={{ color: "var(--color-slate-400)" }}>{t(session.language, "diet_subtitle")}</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="glass-card p-4">
+          <p className="text-xs font-medium mb-2" style={{ color: "var(--color-slate-400)" }}>{t(session.language, "diet_language")}</p>
+          <LanguageSelector selected={session.language} onSelect={updateLanguage} />
+        </div>
+
+        <div className="glass-card p-4">
+          {!imagePreview ? (
+            <button onClick={() => fileInputRef.current?.click()}
+              className="w-full py-10 rounded-xl flex flex-col items-center gap-3 cursor-pointer transition-all hover:opacity-90"
+              style={{ border: "2px dashed var(--color-cream-300)", background: "var(--color-cream-100)" }}>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "var(--color-coral-50)" }}>
+                <Camera size={26} style={{ color: "var(--color-coral-400)" }} />
+              </div>
+              <p className="text-sm font-medium" style={{ color: "var(--color-slate-600)" }}>{t(session.language, "diet_upload_prompt")}</p>
+            </button>
+          ) : (
+            <div className="relative">
+              <img src={imagePreview} alt="Food" className="w-full h-56 object-cover rounded-xl" />
+              <button onClick={resetAll} className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)" }}>
+                <X size={16} color="white" />
+              </button>
+              {cloudinaryUrl && cloudinaryUrl.startsWith("http") && (
+                <div className="absolute bottom-2 left-2 px-2 py-1 rounded text-xs" style={{ background: "rgba(30, 140, 102, 0.9)", color: "white" }}>
+                  ✓ Cloudinary
+                </div>
+              )}
+            </div>
+          )}
+          <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileSelect} className="hidden" />
+        </div>
+
+        <button
+          onClick={handleAnalyze}
+          disabled={!imageBase64 || stage !== "idle"}
+          className="btn-primary w-full flex items-center justify-center gap-2"
+        >
+          {stage === "uploading" ? (
+            <><div className="spinner" style={{ width: 16, height: 16, borderTopColor: "white", borderColor: "rgba(255,255,255,0.3)" }} /> {t(session.language, "diet_uploading")}</>
+          ) : stage === "analyzing" ? (
+            <><div className="spinner" style={{ width: 16, height: 16, borderTopColor: "white", borderColor: "rgba(255,255,255,0.3)" }} /> {t(session.language, "diet_analyzing")}...</>
+          ) : (
+            <><Leaf size={16} /> {t(session.language, "diet_analyze")}</>
+          )}
+        </button>
+
+        {error && <div className="alert-critical p-3"><p className="text-sm" style={{ color: "var(--color-danger-700)" }}>{error}</p></div>}
+        {stage !== "idle" && (
+          <LoadingDots text={stage === "uploading" ? "Uploading to Cloudinary" : "Identifying dish with Gemini Vision"} />
+        )}
+
+        {result && !result.error && (
+          <>
+            <div className="alert-success p-4">
+              <div className="flex items-start gap-3">
+                <Check size={18} style={{ color: "var(--color-teal-600)", marginTop: 2, flexShrink: 0 }} />
+                <div className="flex-1">
+                  <p className="font-medium" style={{ color: "var(--color-teal-700)" }}>
+                    {result.dish_name}
+                    {result.dish_name_english && result.dish_name_english !== result.dish_name && (
+                      <span style={{ color: "var(--color-teal-600)", fontWeight: 400 }}> — {result.dish_name_english}</span>
+                    )}
+                  </p>
+                  <p className="text-sm mt-2" style={{ color: "var(--color-teal-600)", lineHeight: 1.6 }}>
+                    {t(session.language, "diet_meal_ready")}
+                  </p>
+                  <div className="mt-3">
+                    <ListenButton
+                      text={t(session.language, "diet_meal_ready")}
+                      languageCode={session.language}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Nutrition comparison */}
+            {result.nutrition_original && result.nutrition_adapted && (
+              <div className="warm-card p-4">
+                <p className="text-xs font-medium mb-3" style={{ color: "var(--color-slate-400)" }}>Nutrition — original vs. hospital-adapted</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <NutritionCell
+                    icon={Flame}
+                    label="Calories"
+                    original={result.nutrition_original.calories}
+                    adapted={result.nutrition_adapted.calories}
+                    unit=""
+                  />
+                  <NutritionCell
+                    icon={Droplet}
+                    label="Sodium"
+                    original={result.nutrition_original.sodium_mg}
+                    adapted={result.nutrition_adapted.sodium_mg}
+                    unit="mg"
+                  />
+                  <NutritionCell
+                    icon={Wheat}
+                    label="Sugar"
+                    original={result.nutrition_original.sugar_g}
+                    adapted={result.nutrition_adapted.sugar_g}
+                    unit="g"
+                  />
+                </div>
+              </div>
+            )}
+
+            {result.hospital_meal_plan && (
+              <div className="warm-card p-4" style={{ borderLeft: "3px solid var(--color-teal-400)" }}>
+                <p className="text-xs font-medium mb-1" style={{ color: "var(--color-slate-400)" }}>{t(session.language, "diet_hospital_plan")}</p>
+                <p className="text-sm" style={{ color: "var(--color-slate-700)", lineHeight: 1.6 }}>{result.hospital_meal_plan}</p>
+              </div>
+            )}
+
+            {result.cultural_notes && (
+              <div className="warm-card p-4" style={{ borderLeft: "3px solid var(--color-coral-400)" }}>
+                <p className="text-xs font-medium mb-1" style={{ color: "var(--color-slate-400)" }}>{t(session.language, "diet_cultural_notes")}</p>
+                <p className="text-sm" style={{ color: "var(--color-slate-700)", lineHeight: 1.6 }}>{result.cultural_notes}</p>
+              </div>
+            )}
+          </>
+        )}
+
+        <div className="flex items-start gap-2 p-3 rounded-lg" style={{ background: "var(--color-teal-50)" }}>
+          <Shield size={14} style={{ color: "var(--color-teal-500)", marginTop: 2, flexShrink: 0 }} />
+          <p className="text-xs" style={{ color: "var(--color-teal-700)" }}>
+            Photos are processed through Cloudinary, then analyzed by Gemini Vision. No patient identifiers stored.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NutritionCell({ icon: Icon, label, original, adapted, unit }) {
+  const delta = adapted - original;
+  const improved = unit === "mg" || unit === "g" || label === "Calories" ? delta < 0 : delta > 0;
+  return (
+    <div className="p-3 rounded-lg" style={{ background: "var(--color-cream-100)" }}>
+      <div className="flex items-center gap-1 mb-1">
+        <Icon size={12} style={{ color: "var(--color-slate-400)" }} />
+        <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{label}</p>
+      </div>
+      <p className="text-xs" style={{ color: "var(--color-danger-500)" }}>
+        <span className="line-through">{original}{unit}</span>
+      </p>
+      <p className="text-sm font-semibold" style={{ color: improved ? "var(--color-teal-600)" : "var(--color-slate-600)" }}>
+        {adapted}{unit}
+      </p>
+    </div>
+  );
+}

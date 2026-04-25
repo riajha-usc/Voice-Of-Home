@@ -1,0 +1,13 @@
+{
+  "name": "@voicesofhome/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server exposing the Voices of Home cultural medical knowledge base for AI coding agents",
+  "main": "src/index.js",
+  "bin": {
+    "voh-mcp": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {}
+}
