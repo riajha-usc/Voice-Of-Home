@@ -12,7 +12,6 @@
 *.env.development
 *.env.production
 *.env.test
-.env.example
 secrets.*
 secrets/
 config/secrets/
