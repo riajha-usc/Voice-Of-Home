@@ -32,8 +32,6 @@ async function uploadFoodPhoto(base64Data) {
     const result = await cloudinary.uploader.upload(base64Data, {
       folder: "voicesofhome/food",
       resource_type: "image",
-      categorization: "google_tagging",
-      auto_tagging: 0.6,
       transformation: [
         { width: 800, height: 800, crop: "limit", quality: "auto", fetch_format: "auto" },
       ],

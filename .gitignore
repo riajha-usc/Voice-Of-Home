@@ -176,3 +176,6 @@ yarn.lock.bak
 *.orig
 *.rej
 .history/
+
+.gcloudignore
+app.yaml

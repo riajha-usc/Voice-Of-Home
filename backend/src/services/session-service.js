@@ -146,6 +146,26 @@ async function appendToArray(sessionId, field, entry, init = {}) {
   return data.sessions[idx];
 }
 
+async function removeFromArray(sessionId, field, idField, idValue) {
+  const db = getDB();
+
+  if (db) {
+    await db.collection("sessions").updateOne(
+      { session_id: sessionId },
+      { $pull: { [field]: { [idField]: idValue } }, $set: { updated_at: new Date().toISOString() } }
+    );
+    return getSession(sessionId);
+  }
+
+  const data = readFile();
+  const idx = data.sessions.findIndex((s) => s.session_id === sessionId);
+  if (idx < 0) return null;
+  data.sessions[idx][field] = (data.sessions[idx][field] || []).filter((m) => m[idField] !== idValue);
+  data.sessions[idx].updated_at = new Date().toISOString();
+  writeFile(data);
+  return data.sessions[idx];
+}
+
 async function listSessionsByDoctor(doctorId, limit = 20) {
   const db = getDB();
   if (db) {
@@ -182,6 +202,7 @@ module.exports = {
   createSession,
   getSession,
   getSessionByJoinCode,
+  removeFromArray,
   updateSession,
   ensureSession,
   appendToArray,

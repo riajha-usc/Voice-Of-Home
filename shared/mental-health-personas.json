@@ -1,0 +1,65 @@
+{
+  "_about": "Three anonymized personas representing common shapes in the cleaned 600-person mental health dataset. Each one is a synthesis — not a real individual — used for demo and pattern lookup.",
+  "_dataset_meta": {
+    "total_records": 600,
+    "source": "Kaggle (cleaned + engineered)",
+    "labels": ["anxiety", "depression", "loneliness", "burnout", "grief", "adjustment"],
+    "demographics": ["international_student", "first_generation", "elderly_immigrant", "frontline_worker", "recent_layoff"]
+  },
+  "personas": [
+    {
+      "id": "p_intl_student",
+      "title": "International student — anxious, isolated",
+      "summary": "First-year graduate student from India, lives alone, classes in a second language. Struggles with the academic pressure plus the cultural distance from home.",
+      "common_phrases": [
+        "I feel I am drowning",
+        "everyone here is so different from me",
+        "my parents do not understand"
+      ],
+      "underlying_patterns": ["academic_anxiety", "homesickness", "cultural_isolation"],
+      "what_helped": [
+        "Joining a peer group from the same country",
+        "Weekly call schedule with family at a fixed time",
+        "Brief CBT through campus counseling",
+        "Naming the homesickness instead of fighting it"
+      ],
+      "screening_recommendations": ["GAD-7", "PHQ-9"]
+    },
+    {
+      "id": "p_elderly_isolated",
+      "title": "Elderly Vietnamese parent — language isolation, grief",
+      "summary": "78-year-old recently arrived in the US to live with adult children. Grief over the recent death of a spouse. Children work all day. No English. Watches news in Vietnamese, sleeps poorly.",
+      "common_phrases": [
+        "không có ai để nói chuyện (no one to talk to)",
+        "I miss my country",
+        "I am tired of being a burden"
+      ],
+      "underlying_patterns": ["complicated_grief", "social_isolation", "depression_in_elderly"],
+      "what_helped": [
+        "Vietnamese-speaking community center senior program (twice weekly)",
+        "Daily 15-minute call with grandchild",
+        "Walking group for elders",
+        "Validation of the grief, not redirection"
+      ],
+      "screening_recommendations": ["PHQ-9 (geriatric)", "Cornell Scale for Depression in Dementia if cognitive concerns"]
+    },
+    {
+      "id": "p_recent_layoff",
+      "title": "Recently laid-off father — shame, identity loss, suppressed",
+      "summary": "Mid-40s, sole earner, two kids, laid off three weeks ago in tech. Hasn't told extended family. Spends days applying to jobs. Snaps at family. Not sleeping.",
+      "common_phrases": [
+        "I'm fine, I'll figure it out",
+        "I just need one more interview to land",
+        "they don't need to know yet"
+      ],
+      "underlying_patterns": ["identity_loss", "acute_stress", "shame_avoidance", "early_burnout"],
+      "what_helped": [
+        "Naming the shame out loud to one trusted person",
+        "Structured daily schedule (not just job-hunting)",
+        "Talking to spouse about the financial timeline together",
+        "Brief therapy focused on identity beyond role"
+      ],
+      "screening_recommendations": ["PHQ-9", "GAD-7", "AUDIT-C if alcohol use uptick"]
+    }
+  ]
+}

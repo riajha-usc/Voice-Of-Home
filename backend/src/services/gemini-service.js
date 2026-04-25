@@ -14,9 +14,9 @@ function initGemini() {
 
   const { GoogleGenerativeAI } = require("@google/generative-ai");
   genAI = new GoogleGenerativeAI(apiKey);
-  model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-  visionModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-  console.log("[Gemini] Initialized with gemini-2.0-flash.");
+  model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  visionModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  console.log("[Gemini] Initialized with gemini-2.5-flash.");
   return true;
 }
 

@@ -8,6 +8,8 @@ export const translations = {
     nav_diet: "Dinh dưỡng",
     nav_voice: "Giọng nói",
     nav_chat: "Trò chuyện",
+    nav_family: "Gia đình",
+    nav_wellness: "Sức khỏe",
 
     // Symptoms page
     symptoms_title: "Khai báo triệu chứng",
@@ -69,6 +71,8 @@ export const translations = {
     nav_diet: "Comida",
     nav_voice: "Voz",
     nav_chat: "Chat",
+    nav_family: "Familia",
+    nav_wellness: "Bienestar",
 
     symptoms_title: "Reporte de síntomas",
     symptoms_subtitle: "Descríbelo con tus propias palabras",
@@ -126,6 +130,8 @@ export const translations = {
     nav_diet: "Manje",
     nav_voice: "Vwa",
     nav_chat: "Chat",
+    nav_family: "Fanmi",
+    nav_wellness: "Byennèt",
 
     symptoms_title: "Rapò sentòm",
     symptoms_subtitle: "Dekri l nan pwòp mo w",
@@ -183,6 +189,8 @@ export const translations = {
     nav_diet: "भोजन",
     nav_voice: "आवाज़",
     nav_chat: "बातचीत",
+    nav_family: "परिवार",
+    nav_wellness: "कल्याण",
 
     symptoms_title: "लक्षण बताएं",
     symptoms_subtitle: "अपने शब्दों में बताएं",
@@ -240,6 +248,8 @@ export const translations = {
     nav_diet: "饮食",
     nav_voice: "语音",
     nav_chat: "聊天",
+    nav_family: "家人",
+    nav_wellness: "心理健康",
 
     symptoms_title: "症状报告",
     symptoms_subtitle: "用您自己的话描述",
@@ -297,6 +307,8 @@ export const translations = {
     nav_diet: "Pagkain",
     nav_voice: "Boses",
     nav_chat: "Chat",
+    nav_family: "Pamilya",
+    nav_wellness: "Kalusugan",
 
     symptoms_title: "I-report ang sintomas",
     symptoms_subtitle: "Ilarawan sa sarili mong mga salita",
@@ -354,6 +366,8 @@ export const translations = {
     nav_diet: "식사",
     nav_voice: "음성",
     nav_chat: "채팅",
+    nav_family: "가족",
+    nav_wellness: "웰빙",
 
     symptoms_title: "증상 보고",
     symptoms_subtitle: "자신의 말로 설명해주세요",
@@ -411,6 +425,8 @@ export const translations = {
     nav_diet: "الطعام",
     nav_voice: "الصوت",
     nav_chat: "المحادثة",
+    nav_family: "العائلة",
+    nav_wellness: "الصحة النفسية",
 
     symptoms_title: "الإبلاغ عن الأعراض",
     symptoms_subtitle: "صفها بكلماتك الخاصة",
@@ -468,6 +484,8 @@ export const translations = {
     nav_diet: "غذا",
     nav_voice: "صدا",
     nav_chat: "گفتگو",
+    nav_family: "خانواده",
+    nav_wellness: "سلامت",
 
     symptoms_title: "گزارش علائم",
     symptoms_subtitle: "با کلمات خودتان توصیف کنید",
@@ -525,6 +543,8 @@ export const translations = {
     nav_diet: "Diet",
     nav_voice: "Voice",
     nav_chat: "Chat",
+    nav_family: "Family",
+    nav_wellness: "Wellness",
 
     symptoms_title: "Voice check-in",
     symptoms_subtitle: "Describe symptoms in your own words",

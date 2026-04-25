@@ -12,6 +12,8 @@ const REQUIRED_COLLECTIONS = [
   "hospitals",
   "doctors",
   "patients",
+  "doctor_feedback",
+  "mental_health_records",
 ];
 
 async function connectDB() {
@@ -49,6 +51,9 @@ async function connectDB() {
     await db.collection("doctors").createIndex({ hospital_id: 1 });
     await db.collection("hospitals").createIndex({ id: 1 }, { unique: true });
     await db.collection("doctors").createIndex({ id: 1 }, { unique: true });
+    await db.collection("doctor_feedback").createIndex({ session_id: 1, created_at: -1 });
+    await db.collection("doctor_feedback").createIndex({ doctor_id: 1, created_at: -1 });
+    await db.collection("doctor_feedback").createIndex({ target_type: 1, verdict: 1 });
 
     return db;
   } catch (err) {

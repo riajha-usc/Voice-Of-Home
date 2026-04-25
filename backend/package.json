@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "seed": "node src/utils/seed-knowledge-base.js"
+    "seed": "node src/utils/seed-knowledge-base.js",
+    "seed:hospitals": "node src/utils/seed-hospitals.js"
   },
   "dependencies": {
     "express": "^4.21.0",

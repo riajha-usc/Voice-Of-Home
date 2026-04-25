@@ -1,8 +1,94 @@
 
 const fs = require("fs");
 const path = require("path");
+const { getDB } = require("../../config/database");
 
 let entries = null;
+
+// -----------------------------------------------------------------------------
+// Atlas Vector Search
+//
+// Uses MongoDB Atlas Vector Search ($vectorSearch aggregation) over the
+// `cultural_knowledge` collection. The collection is seeded with 768-d
+// embeddings from Gemini text-embedding-004 by `seed-knowledge-base.js`.
+//
+// Atlas index expected (create in Atlas UI under Search > Vector Search):
+//   {
+//     "fields": [
+//       { "type": "vector", "path": "embedding", "numDimensions": 768, "similarity": "cosine" },
+//       { "type": "filter", "path": "language_code" }
+//     ]
+//   }
+//   Index name: "cultural_kb_vector"
+//
+// Falls back gracefully:
+//   - If Atlas is not connected → returns null (caller falls back to in-memory)
+//   - If embeddings can't be generated → returns null
+//   - If $vectorSearch fails (index missing) → returns null with a helpful warning
+// -----------------------------------------------------------------------------
+
+const VECTOR_INDEX = process.env.ATLAS_VECTOR_INDEX || "cultural_kb_vector";
+
+let warnedNoIndex = false;
+
+async function generateQueryEmbedding(text) {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey || apiKey === "your_gemini_api_key") return null;
+  try {
+    const { GoogleGenerativeAI } = require("@google/generative-ai");
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    const result = await model.embedContent(text);
+    return result.embedding.values;
+  } catch (err) {
+    if (!err.message?.includes("429")) {
+      console.warn("[KnowledgeBase] embedding generation failed:", err.message);
+    }
+    return null;
+  }
+}
+
+async function vectorSearch(query, languageCode = null, limit = 5) {
+  const db = getDB();
+  if (!db) return null;
+
+  const queryVec = await generateQueryEmbedding(query);
+  if (!queryVec) return null;
+
+  const filter = languageCode ? { language_code: languageCode } : undefined;
+
+  try {
+    const pipeline = [
+      {
+        $vectorSearch: {
+          index: VECTOR_INDEX,
+          path: "embedding",
+          queryVector: queryVec,
+          numCandidates: 60,
+          limit,
+          ...(filter ? { filter } : {}),
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          embedding: 0,
+          search_text: 0,
+          score: { $meta: "vectorSearchScore" },
+        },
+      },
+    ];
+
+    const results = await db.collection("cultural_knowledge").aggregate(pipeline).toArray();
+    return results.map((r) => ({ ...r, _vector_score: r.score }));
+  } catch (err) {
+    if (!warnedNoIndex) {
+      warnedNoIndex = true;
+      console.warn(`[KnowledgeBase] $vectorSearch failed (index '${VECTOR_INDEX}' may not exist). Create it in Atlas. Falling back to in-memory.`, err.message);
+    }
+    return null;
+  }
+}
 
 function loadKnowledgeBase() {
   if (entries) return entries;
@@ -86,6 +172,7 @@ function getLanguages() {
 module.exports = {
   loadKnowledgeBase,
   searchKnowledgeBase,
+  vectorSearch,
   getByLanguage,
   getById,
   getLanguages,
