@@ -21,36 +21,6 @@ Voices of Home bridges the cultural context gap between immigrant patients and t
 - **Catalyst for Care** (Primary) — Healthcare innovation
 - **Agentverse** (Secondary) — AI agents on Fetch.ai ($5,000)
 
-## Company Challenges (6)
-
-| Challenge | Prize | Integration |
-|-----------|-------|-------------|
-| Fetch.ai / Agentverse | $5,000 | 4 uAgents: Cultural NLP, Dietary, Voice, Orchestrator |
-| Cloudinary | $2,000 | Food photo upload pipeline (auto-tag, CDN, transformations) |
-| Gemini API (MLH) | Swag | Cultural symptom RAG, food vision, care instruction simplification, patient-facing explanations (gemini-2.0-flash) |
-| ElevenLabs (MLH) | Earbuds | Multilingual voice for every in-app message (eleven_multilingual_v2) |
-| Zetic / Melange | $2,000 | On-device Whisper speech-to-text wrapper (Melange when available, Web Speech fallback) |
-| GoDaddy (MLH) | Gift Card | voicesofhome.care domain |
-
-## Quick Start
-
-```bash
-# 1. Clone and install
-git clone <repo-url>
-cd voices-of-home
-cp .env.example .env
-# Fill in your API keys in .env
-
-# 2. Install backend dependencies
-cd backend && npm install
-
-# 3. Start backend (works without any API keys in mock mode)
-npm run dev
-
-# 4. Seed knowledge base (requires MONGODB_URI)
-npm run seed
-```
-
 The server starts in **mock mode** if API keys are missing — all endpoints return realistic placeholder data so you can develop the frontend independently.
 
 ## Tech Stack
