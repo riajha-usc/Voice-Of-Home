@@ -5,6 +5,31 @@ import { useSession } from "../hooks/useSession";
 import { api } from "../utils/api";
 import { t, isRTL } from "../utils/translations";
 
+const PAGE_COPY = {
+  en: {
+    careCircle: "Care circle",
+    linkedMembers: "linked members",
+    restrictions: "Restrictions",
+    tracked: "tracked",
+    nutritionCompare: "Nutrition — original vs. hospital-adapted",
+    sessionContext: "Session diet context",
+    noRestrictions: "No dietary restrictions are currently stored for this patient.",
+    restrictionsPrefix: "Restrictions:",
+    privacy: "Photos are processed through Cloudinary, then analyzed and stored on the active patient session. No patient identifiers are embedded in the image request.",
+  },
+  zh: {
+    careCircle: "护理圈",
+    linkedMembers: "位已连接成员",
+    restrictions: "饮食限制",
+    tracked: "项已记录",
+    nutritionCompare: "营养对比 — 原始餐食与医院调整版",
+    sessionContext: "当前饮食背景",
+    noRestrictions: "当前没有为该患者记录任何饮食限制。",
+    restrictionsPrefix: "限制：",
+    privacy: "照片会先通过 Cloudinary 处理，再分析并保存到当前患者会话中。图像请求中不会包含患者身份信息。",
+  },
+};
+
 export default function DietPage() {
   const { session, updateLanguage, onAnalyzed } = useSession();
   const [imagePreview, setImagePreview] = useState(null);
@@ -15,6 +40,7 @@ export default function DietPage() {
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   const rtl = isRTL(session.language);
+  const copy = PAGE_COPY[session.language] || PAGE_COPY.en;
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
@@ -87,13 +113,13 @@ export default function DietPage() {
         </div>
         <div className="patient-stat-grid">
           <div className="patient-stat-card">
-            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Care circle</p>
-            <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>{session.careCircle.length} linked members</p>
+            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.careCircle}</p>
+            <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>{session.careCircle.length} {copy.linkedMembers}</p>
           </div>
           <div className="patient-stat-card">
-            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Restrictions</p>
+            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.restrictions}</p>
             <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>
-              {session.patientContext?.dietary_restrictions?.length || 0} tracked
+              {session.patientContext?.dietary_restrictions?.length || 0} {copy.tracked}
             </p>
           </div>
         </div>
@@ -180,7 +206,7 @@ export default function DietPage() {
         <aside className="patient-aside">
           {result?.nutrition_original && result?.nutrition_adapted && (
             <div className="warm-card p-4">
-              <p className="text-xs font-medium mb-3" style={{ color: "var(--color-slate-400)" }}>Nutrition — original vs. hospital-adapted</p>
+              <p className="text-xs font-medium mb-3" style={{ color: "var(--color-slate-400)" }}>{copy.nutritionCompare}</p>
               <div className="grid grid-cols-3 gap-2">
                 <NutritionCell
                   icon={Flame}
@@ -222,19 +248,17 @@ export default function DietPage() {
           )}
 
           <div className="warm-card p-4">
-            <p className="text-xs font-medium mb-2" style={{ color: "var(--color-slate-400)" }}>Session diet context</p>
+            <p className="text-xs font-medium mb-2" style={{ color: "var(--color-slate-400)" }}>{copy.sessionContext}</p>
             <p className="text-sm" style={{ color: "var(--color-slate-700)", lineHeight: 1.6 }}>
               {session.patientContext?.dietary_restrictions?.length > 0
-                ? `Restrictions: ${session.patientContext.dietary_restrictions.join(", ")}`
-                : "No dietary restrictions are currently stored for this patient."}
+                ? `${copy.restrictionsPrefix} ${session.patientContext.dietary_restrictions.join(", ")}`
+                : copy.noRestrictions}
             </p>
           </div>
 
           <div className="flex items-start gap-2 p-3 rounded-lg" style={{ background: "var(--color-teal-50)" }}>
             <Shield size={14} style={{ color: "var(--color-teal-500)", marginTop: 2, flexShrink: 0 }} />
-            <p className="text-xs" style={{ color: "var(--color-teal-700)" }}>
-              Photos are processed through Cloudinary, then analyzed and stored on the active patient session. No patient identifiers are embedded in the image request.
-            </p>
+            <p className="text-xs" style={{ color: "var(--color-teal-700)" }}>{copy.privacy}</p>
           </div>
         </aside>
       </div>

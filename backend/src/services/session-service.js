@@ -41,6 +41,7 @@ function emptySessionShape(sessionId, init = {}) {
     voice_messages: init.voice_messages || [],
     chat_history: init.chat_history || [],
     mental_health_checkins: init.mental_health_checkins || [],
+    mental_health_appointments: init.mental_health_appointments || [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

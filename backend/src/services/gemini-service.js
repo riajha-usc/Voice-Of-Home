@@ -6,6 +6,58 @@ let model = null;
 let visionModel = null;
 const PRIMARY_MODEL = "gemma-4-31b-it";
 
+function normalizeJsonCandidate(text) {
+  return String(text || "")
+    .replace(/```json\s*/gi, "")
+    .replace(/```/g, "")
+    .replace(/[“”]/g, "\"")
+    .replace(/[‘’]/g, "'")
+    .trim();
+}
+
+function extractBalancedJson(text) {
+  const input = normalizeJsonCandidate(text);
+  const start = input.search(/[\[{]/);
+  if (start === -1) {
+    throw new Error(`No JSON object found in model response: ${input.slice(0, 120)}`);
+  }
+
+  const opening = input[start];
+  const closing = opening === "{" ? "}" : "]";
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < input.length; i++) {
+    const ch = input[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (ch === "\"") {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === opening) depth += 1;
+    if (ch === closing) depth -= 1;
+    if (depth === 0) {
+      return input.slice(start, i + 1);
+    }
+  }
+
+  throw new Error(`Incomplete JSON object in model response: ${input.slice(0, 120)}`);
+}
+
+function parseModelJson(text) {
+  const candidate = extractBalancedJson(text);
+  return JSON.parse(candidate);
+}
+
 function initGemini() {
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey || apiKey === "your_gemini_api_key") {
@@ -78,13 +130,12 @@ RULES:
 - If no exact match, use the closest cultural-medical knowledge available.
 - Always err on the side of recommending more screenings, not fewer.
 - Mark cardiovascular, neurologic emergencies, and pediatric dehydration as "critical" alert level.
-- Return ONLY valid JSON. No markdown, no explanation outside the JSON.`;
+- Return ONLY valid JSON. No markdown, no bullet lists, no role labels, no explanation outside the JSON.`;
 
   try {
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
-    const cleaned = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    const parsed = JSON.parse(cleaned);
+    const parsed = parseModelJson(responseText);
     return { ...parsed, raw_text: text, language_code: languageCode, method: "gemini_rag" };
   } catch (err) {
     console.error("[Gemini] Symptom analysis failed:", err.message);
@@ -147,7 +198,7 @@ RULES:
 - Adapted version should reduce sodium below 1000mg and limit sugar, while keeping the dish recognizable.
 - Hospital meal plan must be practical and specific.
 - Cultural notes should explain why this food matters to the patient and what NOT to substitute.
-- Return ONLY valid JSON.`;
+- Return ONLY valid JSON. No markdown, no headings, no bullet lists, no explanation outside the JSON.`;
 
   try {
     // Accept either (1) data URL "data:image/jpeg;base64,..." (2) raw base64
@@ -174,8 +225,7 @@ RULES:
       { inlineData: { mimeType, data: base64Data } },
     ]);
     const responseText = result.response.text();
-    const cleaned = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    return { ...JSON.parse(cleaned), method: "gemini_vision" };
+    return { ...parseModelJson(responseText), method: "gemini_vision" };
   } catch (err) {
     console.error("[Gemini] Food analysis failed:", err.message);
     return { error: err.message, method: "failed" };
@@ -203,13 +253,12 @@ Return JSON:
   "warning_signs": ["when to call doctor"]
 }
 
-Be warm, clear, and specific. Use short sentences. No medical jargon. Return ONLY valid JSON.`;
+Be warm, clear, and specific. Use short sentences. No medical jargon. Return ONLY valid JSON. No markdown, no role labels, no explanation outside the JSON.`;
 
   try {
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
-    const cleaned = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    return { ...JSON.parse(cleaned), method: "gemini" };
+    return { ...parseModelJson(responseText), method: "gemini" };
   } catch (err) {
     console.error("[Gemini] Simplification failed:", err.message);
     return { simplified_english: text, translated: text, method: "fallback", error: err.message };

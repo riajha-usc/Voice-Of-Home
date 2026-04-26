@@ -226,6 +226,7 @@ export function SessionProvider({ children }) {
     voiceMessages: sessionRecord?.voice_messages || [],
     chatHistory: sessionRecord?.chat_history || [],
     mentalHealthCheckins: sessionRecord?.mental_health_checkins || [],
+    mentalHealthAppointments: sessionRecord?.mental_health_appointments || [],
     onboarded,
     isHydrating,
   };

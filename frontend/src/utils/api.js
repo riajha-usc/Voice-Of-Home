@@ -92,4 +92,6 @@ export const api = {
 
   submitMentalHealthCheckin: (data) =>
     request("/mental-health/checkin", { method: "POST", body: data }),
+  requestMentalHealthAppointment: (data) =>
+    request("/mental-health/appointments", { method: "POST", body: data }),
 };

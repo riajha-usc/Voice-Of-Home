@@ -6,6 +6,31 @@ import { api } from "../utils/api";
 import { t, isRTL } from "../utils/translations";
 import { startSpeechRecognition, getSpeechCapability } from "../utils/onDeviceSpeech";
 
+const PAGE_COPY = {
+  en: {
+    language: "Language",
+    session: "Session",
+    context: "Current patient context",
+    conditions: "Conditions",
+    medications: "Medications",
+    none: "None listed",
+    youSaid: "You said:",
+    typeToggleShow: "Or type instead",
+    typeToggleHide: "Hide typing",
+  },
+  zh: {
+    language: "语言",
+    session: "会话",
+    context: "当前患者背景",
+    conditions: "病情",
+    medications: "药物",
+    none: "暂无记录",
+    youSaid: "您说的是：",
+    typeToggleShow: "或者改为输入",
+    typeToggleHide: "隐藏输入框",
+  },
+};
+
 export default function SymptomsPage() {
   const { session, updateLanguage, onAnalyzed } = useSession();
   const [symptomText, setSymptomText] = useState("");
@@ -17,6 +42,7 @@ export default function SymptomsPage() {
   const recognitionRef = useRef(null);
   const rtl = isRTL(session.language);
   const speechCap = getSpeechCapability();
+  const copy = PAGE_COPY[session.language] || PAGE_COPY.en;
 
   const handleAnalyze = async (textOverride) => {
     const text = (textOverride ?? symptomText).trim();
@@ -95,11 +121,11 @@ export default function SymptomsPage() {
         </div>
         <div className="patient-stat-grid">
           <div className="patient-stat-card">
-            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Language</p>
+            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.language}</p>
             <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>{session.patientContext.language}</p>
           </div>
           <div className="patient-stat-card">
-            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Session</p>
+            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.session}</p>
             <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>
               {session.sessionId ? session.sessionId.slice(-6).toUpperCase() : "Active"}
             </p>
@@ -137,7 +163,7 @@ export default function SymptomsPage() {
               </div>
               {symptomText && (
                 <div className="w-full p-3 rounded-xl" style={{ background: "var(--color-cream-100)", border: "1px dashed var(--color-cream-300)" }}>
-                  <p className="text-xs mb-1" style={{ color: "var(--color-slate-400)" }}>You said:</p>
+                  <p className="text-xs mb-1" style={{ color: "var(--color-slate-400)" }}>{copy.youSaid}</p>
                   <p className="text-sm" style={{ color: "var(--color-slate-700)" }}>{symptomText}</p>
                 </div>
               )}
@@ -147,7 +173,7 @@ export default function SymptomsPage() {
                 style={{ color: "var(--color-slate-400)" }}
               >
                 <Type size={12} />
-                {showTextInput ? "Hide typing" : "Or type instead"}
+                {showTextInput ? copy.typeToggleHide : copy.typeToggleShow}
               </button>
             </div>
           </div>
@@ -197,15 +223,15 @@ export default function SymptomsPage() {
           </div>
 
           <div className="warm-card p-4">
-            <p className="text-xs font-medium mb-2" style={{ color: "var(--color-slate-400)" }}>Current patient context</p>
+            <p className="text-xs font-medium mb-2" style={{ color: "var(--color-slate-400)" }}>{copy.context}</p>
             <div className="space-y-3 text-sm">
               <div>
-                <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Conditions</p>
-                <p style={{ color: "var(--color-slate-700)" }}>{session.patientContext.conditions?.join(", ") || "None listed"}</p>
+                <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.conditions}</p>
+                <p style={{ color: "var(--color-slate-700)" }}>{session.patientContext.conditions?.join(", ") || copy.none}</p>
               </div>
               <div>
-                <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Medications</p>
-                <p style={{ color: "var(--color-slate-700)" }}>{session.patientContext.medications?.join(", ") || "None listed"}</p>
+                <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.medications}</p>
+                <p style={{ color: "var(--color-slate-700)" }}>{session.patientContext.medications?.join(", ") || copy.none}</p>
               </div>
             </div>
           </div>

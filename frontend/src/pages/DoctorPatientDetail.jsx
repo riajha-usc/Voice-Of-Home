@@ -406,6 +406,7 @@ export default function DoctorPatientDetail() {
           voiceMessages: loadedSession.voice_messages || [],
           chatHistory: loadedSession.chat_history || [],
           mentalHealthCheckins: loadedSession.mental_health_checkins || [],
+          mentalHealthAppointments: loadedSession.mental_health_appointments || [],
         });
       } catch (err) {
         console.error("[DoctorPatientDetail] load failed:", err);
@@ -445,7 +446,12 @@ export default function DoctorPatientDetail() {
   const hasInsights = session.symptomInsights.length > 0;
   const hasDiet = session.dietaryResults.length > 0;
   const hasVoice = session.voiceMessages.length > 0;
+  const hasWellness = session.mentalHealthCheckins.length > 0;
   const latestDiet = hasDiet ? session.dietaryResults[session.dietaryResults.length - 1] : null;
+  const latestWellness = hasWellness ? session.mentalHealthCheckins[session.mentalHealthCheckins.length - 1] : null;
+  const latestAppointment = session.mentalHealthAppointments?.length > 0
+    ? session.mentalHealthAppointments[session.mentalHealthAppointments.length - 1]
+    : null;
 
   const yob = session.patient?.year_of_birth || (session.patient?.dob ? parseInt(session.patient.dob.slice(0, 4)) : null);
   const age = yob ? new Date().getFullYear() - yob : null;
@@ -658,6 +664,42 @@ export default function DoctorPatientDetail() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="warm-card p-5 mb-4" style={{ borderLeft: "3px solid var(--color-coral-400)", borderRadius: "0 var(--radius-lg) var(--radius-lg) 0" }}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-medium" style={{ color: "var(--color-slate-700)" }}>Wellness check-ins</h2>
+          {latestAppointment && (
+            <span className="text-xs px-2 py-1 rounded-full" style={{ background: "var(--color-coral-50)", color: "var(--color-coral-500)" }}>
+              Appointment {latestAppointment.status}
+            </span>
+          )}
+        </div>
+
+        {!latestWellness ? (
+          <EmptyState icon={MessageCircle} text="No wellness check-ins submitted yet." />
+        ) : (
+          <div className="space-y-3">
+            <div className="p-3 rounded-xl" style={{ background: "var(--color-cream-50)" }}>
+              <p className="text-xs mb-1" style={{ color: "var(--color-slate-400)" }}>
+                Latest summary · {new Date(latestWellness.timestamp).toLocaleString()}
+              </p>
+              <p className="text-sm" style={{ color: "var(--color-slate-700)", lineHeight: 1.6 }}>
+                {latestWellness.summary || "No summary available."}
+              </p>
+              {latestWellness.journal_text && (
+                <p className="text-xs mt-2" style={{ color: "var(--color-slate-500)" }}>
+                  Journal captured: {latestWellness.journal_text.slice(0, 180)}{latestWellness.journal_text.length > 180 ? "..." : ""}
+                </p>
+              )}
+              {latestWellness.journal_asset?.file_name && (
+                <p className="text-xs mt-2" style={{ color: "var(--color-slate-500)" }}>
+                  Attached journal file: {latestWellness.journal_asset.file_name}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Two-column: Family communication + Cultural expression lookup */}

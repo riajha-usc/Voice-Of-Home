@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Heart, Send, AlertCircle, Sparkles, Database, Mic, MicOff,
   BookOpen, Image, FileText, ChevronRight, Lock, Phone, Globe,
@@ -11,6 +11,223 @@ import { getLanguageName, ListenButton } from "../components/shared/UIComponents
 import { api } from "../utils/api";
 
 const CRISIS_TRIGGERS = /(suicid|kill myself|kill mself|end my life|end it all|hurt myself|self.?harm|i want to die|don't want to live)/i;
+
+const TRIGGER_CATEGORIES = [
+  { key: "study", icon: GraduationCap },
+  { key: "relationship", icon: HeartHandshake },
+  { key: "family", icon: Users },
+  { key: "health", icon: Activity },
+  { key: "work", icon: Briefcase },
+  { key: "finances", icon: DollarSign },
+  { key: "other", icon: MoreHorizontal },
+];
+
+const PAGE_COPY = {
+  en: {
+    title: "Mental wellness companion",
+    subtitle: "A space to be heard. Not a therapist. Listens first, doesn't rush to advice.",
+    checkins: "Check-ins",
+    saved: "saved",
+    appointments: "Appointments",
+    requested: "requested",
+    language: "Language",
+    crisisTitle: "What you're feeling matters and I want you to be safe.",
+    crisisBody: "In the US: Call or text 988 (Suicide & Crisis Lifeline). Outside the US: please reach a local crisis line.",
+    sectionTalk: "1. Let's Talk — How Are You Feeling Today?",
+    sectionTalkSub: "Speak or type in your language. We'll understand.",
+    typeDivider: "OR TYPE YOUR MESSAGE",
+    chatPlaceholder: "Take your time...",
+    fallbackReply: "I'm here. Tell me a little more?",
+    lostConnection: "I lost connection for a moment. I'm still here when you're ready.",
+    youSaid: "You said:",
+    systemUnderstood: "System understood:",
+    journalTitle: "2. Your Journal — Your Story Matters",
+    journalSub: "Upload, write, or capture your journal.",
+    tabWrite: "Write",
+    tabImage: "Upload Image",
+    tabFile: "Upload File",
+    journalPlaceholder: "Write your thoughts in your own language...",
+    uploadImageTitle: "Attach an image from your journal",
+    uploadImageMeta: "JPG, PNG, HEIC",
+    uploadFileTitle: "Attach a journal file",
+    uploadFileMeta: "PDF, DOCX, TXT",
+    selectImage: "Choose image",
+    selectFile: "Choose file",
+    attached: "Attached",
+    privateJournal: "Your journal is private and secure.",
+    triggerTitle: "3. What's Triggering You?",
+    triggerSub: "Help us understand what affects your well-being.",
+    triggerIntensity: "How intense is it right now?",
+    triggerCategory: "What is it regarding?",
+    triggerNotes: "Anything you want to add?",
+    triggerPlaceholder: "Tell us more...",
+    intensityLabels: ["Not at all", "Mild", "Moderate", "High", "Very High"],
+    categories: {
+      study: "Study / School",
+      relationship: "Relationship",
+      family: "Family",
+      health: "Health",
+      work: "Work",
+      finances: "Finances",
+      other: "Other",
+    },
+    patternsTitle: "4. What's Helped People Like You",
+    patternsSub: "From anonymized cases in our dataset",
+    patternsFootnote: "These are patterns, not prescriptions. If anything resonates, talking to a professional is always an option.",
+    feelingsTitle: "5. Rate Your Feelings Right Now",
+    feelingsSub: "Slide to express intensity",
+    recommendationsTitle: "6. Therapeutic Recommendations",
+    recommendationsSub: "Personalized suggestions based on your check-in.",
+    viewResources: "View More Resources",
+    patient: "Patient",
+    feedbackQuestion: "Did these recommendations help?",
+    feedbackHelpful: "Yes, I'm feeling better!",
+    feedbackNeedMore: "Not really, I need more support",
+    supportTitle: "We're here for you",
+    supportBody: "It's okay to need professional support. Let's connect you with a mental health provider.",
+    appointmentReason: "Reason for support",
+    appointmentContact: "Preferred contact",
+    appointmentTime: "Preferred time",
+    appointmentReasonPlaceholder: "Tell us what kind of support you want from the doctor or counselor.",
+    appointmentTimePlaceholder: "Today afternoon, tomorrow morning, after 5 PM...",
+    appointmentButton: "Request appointment with mental health provider",
+    appointmentSaving: "Saving appointment request...",
+    appointmentRequested: "Appointment request saved",
+    appointmentMeta: "Available 24/7 · Multilingual support · Secure & confidential",
+    latestSummary: "Latest wellness summary",
+    latestJournal: "Latest journal note",
+    latestAttachment: "Latest attachment",
+    latestAppointment: "Latest appointment request",
+    appointmentStatusRequested: "requested",
+    doctorView: "Doctor sees this after you submit your check-in.",
+    submitSaved: "Check-in saved — your doctor can see the summary",
+    submitSaving: "Saving check-in...",
+    submitButton: "Submit Wellness Check-in",
+    privacy: "Your privacy is our priority. All your data is encrypted and protected.",
+    helpNow: "Need immediate help?",
+    call988: "Call 988",
+    findHelpPrefix: "or visit",
+    feelingLabels: {
+      anxiety: "Anxiety Level",
+      stress: "Stress Level",
+      energy: "Energy Level",
+      focus: "Focus & Concentration",
+      hopelessness: "Hopelessness / Despair",
+      anger: "Anger / Irritability",
+      confidence: "Confidence / Self-Esteem",
+      overwhelmed: "Feeling Overwhelmed",
+    },
+    recommendations: [
+      { label: "Box Breathing Exercise", desc: "4-4-4-4 technique to calm anxiety" },
+      { label: "5-4-3-2-1 Grounding", desc: "Use your senses to stay present" },
+      { label: "Listen to Calm Music", desc: "Try binaural beats or nature sounds" },
+      { label: "Take a Short Walk", desc: "Even 5 minutes outside can help" },
+      { label: "Drink Water", desc: "Stay hydrated to support your mood" },
+    ],
+  },
+  zh: {
+    title: "心理健康陪伴",
+    subtitle: "一个可以安心表达的空间。不是治疗师，但会先倾听，不急着给建议。",
+    checkins: "健康记录",
+    saved: "条已保存",
+    appointments: "预约申请",
+    requested: "条已提交",
+    language: "语言",
+    crisisTitle: "你的感受很重要，我也希望你是安全的。",
+    crisisBody: "如果你在美国：请拨打或短信联系 988。若不在美国，请联系当地危机干预热线。",
+    sectionTalk: "1. 说说看 — 你今天感觉怎么样？",
+    sectionTalkSub: "可以用你的语言说或写，我们会理解。",
+    typeDivider: "或输入你的内容",
+    chatPlaceholder: "慢慢来……",
+    fallbackReply: "我在这里。你愿意的话，可以再多说一点。",
+    lostConnection: "我刚刚短暂断开了，但我还在这里，准备好了就继续。",
+    youSaid: "你说的是：",
+    systemUnderstood: "系统理解为：",
+    journalTitle: "2. 你的日记 — 你的故事很重要",
+    journalSub: "上传、书写或记录你的日记。",
+    tabWrite: "书写",
+    tabImage: "上传图片",
+    tabFile: "上传文件",
+    journalPlaceholder: "用你的语言写下此刻的想法……",
+    uploadImageTitle: "附上日记图片",
+    uploadImageMeta: "JPG、PNG、HEIC",
+    uploadFileTitle: "附上日记文件",
+    uploadFileMeta: "PDF、DOCX、TXT",
+    selectImage: "选择图片",
+    selectFile: "选择文件",
+    attached: "已附加",
+    privateJournal: "你的日记内容是私密且安全的。",
+    triggerTitle: "3. 是什么在影响你？",
+    triggerSub: "帮助我们了解哪些事情正在影响你的状态。",
+    triggerIntensity: "现在的强度有多高？",
+    triggerCategory: "主要与什么有关？",
+    triggerNotes: "还想补充什么吗？",
+    triggerPlaceholder: "再多告诉我们一点……",
+    intensityLabels: ["完全没有", "轻度", "中等", "较高", "非常高"],
+    categories: {
+      study: "学习 / 学校",
+      relationship: "关系",
+      family: "家庭",
+      health: "健康",
+      work: "工作",
+      finances: "财务",
+      other: "其他",
+    },
+    patternsTitle: "4. 类似经历的人通常什么会有帮助",
+    patternsSub: "来自我们数据集中的匿名案例",
+    patternsFootnote: "这些只是参考模式，不是处方。如果有任何内容让你有共鸣，寻求专业帮助始终是一个选择。",
+    feelingsTitle: "5. 为你此刻的感受打分",
+    feelingsSub: "滑动来表达强度",
+    recommendationsTitle: "6. 推荐的舒缓方式",
+    recommendationsSub: "基于本次记录，为你整理的个性化建议。",
+    viewResources: "查看更多资源",
+    patient: "患者",
+    feedbackQuestion: "这些建议对你有帮助吗？",
+    feedbackHelpful: "有，我感觉好一些了！",
+    feedbackNeedMore: "还不够，我需要更多支持",
+    supportTitle: "我们会支持你",
+    supportBody: "需要专业支持是很正常的。我们可以帮你联系心理健康服务提供者。",
+    appointmentReason: "支持原因",
+    appointmentContact: "偏好的联系方式",
+    appointmentTime: "偏好的时间",
+    appointmentReasonPlaceholder: "告诉我们你希望医生或咨询师提供什么帮助。",
+    appointmentTimePlaceholder: "今天下午、明天上午、晚上 5 点后……",
+    appointmentButton: "申请心理健康服务预约",
+    appointmentSaving: "正在保存预约申请……",
+    appointmentRequested: "预约申请已保存",
+    appointmentMeta: "24/7 可用 · 多语言支持 · 安全保密",
+    latestSummary: "最近一次健康摘要",
+    latestJournal: "最近一次日记内容",
+    latestAttachment: "最近一次附件",
+    latestAppointment: "最近一次预约申请",
+    appointmentStatusRequested: "已提交",
+    doctorView: "提交后，医生会在他的界面看到这份摘要。",
+    submitSaved: "记录已保存，医生现在可以看到摘要",
+    submitSaving: "正在保存记录……",
+    submitButton: "提交健康记录",
+    privacy: "你的隐私很重要。所有数据都会被加密并受到保护。",
+    helpNow: "如果你现在就需要帮助？",
+    call988: "拨打 988",
+    findHelpPrefix: "或访问",
+    feelingLabels: {
+      anxiety: "焦虑程度",
+      stress: "压力程度",
+      energy: "精力水平",
+      focus: "专注与集中",
+      hopelessness: "无助 / 绝望",
+      anger: "愤怒 / 易怒",
+      confidence: "自信 / 自我评价",
+      overwhelmed: "不堪重负感",
+    },
+    recommendations: [
+      { label: "方块呼吸练习", desc: "用 4-4-4-4 的节奏帮助缓解焦虑" },
+      { label: "5-4-3-2-1 觉察练习", desc: "用感官把自己带回当下" },
+      { label: "听舒缓的音乐", desc: "可以试试听双耳节拍或自然声音" },
+      { label: "出去短走一会儿", desc: "哪怕 5 分钟，也可能让状态缓下来" },
+      { label: "喝点水", desc: "保持水分有助于稳定情绪" },
+    ],
+  },
+};
 
 /* ------------------------------------------------------------------ */
 /*  Slider helper with gradient color                                  */
@@ -46,19 +263,6 @@ function GradientSlider({ label, value, onChange, colors }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Trigger category pill                                              */
-/* ------------------------------------------------------------------ */
-const TRIGGER_CATEGORIES = [
-  { key: "study", label: "Study / School", icon: GraduationCap },
-  { key: "relationship", label: "Relationship", icon: HeartHandshake },
-  { key: "family", label: "Family", icon: Users },
-  { key: "health", label: "Health", icon: Activity },
-  { key: "work", label: "Work", icon: Briefcase },
-  { key: "finances", label: "Finances", icon: DollarSign },
-  { key: "other", label: "Other", icon: MoreHorizontal },
-];
-
-/* ------------------------------------------------------------------ */
 /*  Therapeutic recommendations                                        */
 /* ------------------------------------------------------------------ */
 const RECOMMENDATIONS = [
@@ -74,11 +278,18 @@ const RECOMMENDATIONS = [
 /* ------------------------------------------------------------------ */
 export default function MentalHealthPage() {
   const { session, onAnalyzed } = useSession();
-  const patientName = session.patient?.first_name || "there";
+  const copy = PAGE_COPY[session.language] || PAGE_COPY.en;
+  const patientName = session.patient?.first_name || copy.patient;
+  const latestCheckin = session.mentalHealthCheckins?.length
+    ? session.mentalHealthCheckins[session.mentalHealthCheckins.length - 1]
+    : null;
+  const latestAppointment = session.mentalHealthAppointments?.length
+    ? session.mentalHealthAppointments[session.mentalHealthAppointments.length - 1]
+    : null;
 
   /* ---- Section 1: Let's Talk (voice + text) ---- */
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hi. I'm here to listen. Take your time — what's on your mind?" },
+    { role: "assistant", content: PAGE_COPY[session.language]?.fallbackReply || PAGE_COPY.en.fallbackReply },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -89,6 +300,7 @@ export default function MentalHealthPage() {
   /* ---- Section 2: Journal ---- */
   const [journalTab, setJournalTab] = useState("write"); // write | image | file
   const [journalText, setJournalText] = useState("");
+  const [journalAsset, setJournalAsset] = useState(null);
 
   /* ---- Section 3: Triggers ---- */
   const [intensity, setIntensity] = useState(5);
@@ -105,14 +317,33 @@ export default function MentalHealthPage() {
   const [recFeedback, setRecFeedback] = useState(null); // "helpful" | "need_more"
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [appointmentReason, setAppointmentReason] = useState("");
+  const [preferredContact, setPreferredContact] = useState("");
+  const [preferredTime, setPreferredTime] = useState("");
+  const [appointmentBusy, setAppointmentBusy] = useState(false);
+  const [appointmentSaved, setAppointmentSaved] = useState(false);
 
   /* ---- Pattern matches ---- */
   const [matches, setMatches] = useState([]);
   const [stats, setStats] = useState(null);
+  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
+
+  const recommendationList = useMemo(
+    () => RECOMMENDATIONS.map((rec, index) => ({ ...rec, ...(copy.recommendations[index] || {}) })),
+    [copy.recommendations]
+  );
 
   useEffect(() => {
     api.getMentalHealthStats().then(setStats).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    setMessages((existing) => {
+      if (existing.length > 1) return existing;
+      return [{ role: "assistant", content: copy.fallbackReply }];
+    });
+  }, [copy.fallbackReply]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -137,10 +368,10 @@ export default function MentalHealthPage() {
         messages.map((m) => ({ role: m.role, content: m.content })),
         "mental_health"
       );
-      const reply = result.response || result.reply || "I'm here. Tell me a little more?";
+      const reply = result.response || result.reply || copy.fallbackReply;
       setMessages((m) => [...m, { role: "assistant", content: reply, method: result.method }]);
     } catch {
-      setMessages((m) => [...m, { role: "assistant", content: "I lost connection for a moment. I'm still here when you're ready.", method: "error" }]);
+      setMessages((m) => [...m, { role: "assistant", content: copy.lostConnection, method: "error" }]);
     } finally {
       setBusy(false);
     }
@@ -174,6 +405,7 @@ export default function MentalHealthPage() {
         trigger_categories: selectedTriggers,
         intensity,
         journal_text: journalText || null,
+        journal_asset: journalAsset,
         recommendations_feedback: recFeedback,
       });
       onAnalyzed();
@@ -183,6 +415,38 @@ export default function MentalHealthPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function requestAppointment() {
+    if (!session.sessionId || appointmentBusy || !appointmentReason.trim()) return;
+    setAppointmentBusy(true);
+    try {
+      await api.requestMentalHealthAppointment({
+        session_id: session.sessionId,
+        request_reason: appointmentReason.trim(),
+        preferred_contact: preferredContact.trim() || null,
+        preferred_time: preferredTime.trim() || null,
+      });
+      setAppointmentSaved(true);
+      setAppointmentReason("");
+      setPreferredContact("");
+      setPreferredTime("");
+      onAnalyzed();
+    } catch (err) {
+      console.error("[MentalHealth] appointment request failed:", err);
+    } finally {
+      setAppointmentBusy(false);
+    }
+  }
+
+  function handleJournalFile(kind, file) {
+    if (!file) return;
+    setJournalAsset({
+      kind,
+      file_name: file.name,
+      mime_type: file.type || null,
+      size_bytes: file.size || null,
+    });
   }
 
   const toggleTrigger = (key) => {
@@ -196,7 +460,7 @@ export default function MentalHealthPage() {
   };
 
   /* Intensity label */
-  const intensityLabel = intensity <= 2 ? "Not at all" : intensity <= 4 ? "Mild" : intensity <= 6 ? "Moderate" : intensity <= 8 ? "High" : "Very High";
+  const intensityLabel = intensity <= 2 ? copy.intensityLabels[0] : intensity <= 4 ? copy.intensityLabels[1] : intensity <= 6 ? copy.intensityLabels[2] : intensity <= 8 ? copy.intensityLabels[3] : copy.intensityLabels[4];
   const intensityColor = intensity <= 4 ? "var(--color-teal-600)" : intensity <= 6 ? "var(--color-amber-600)" : "var(--color-coral-500)";
 
   return (
@@ -209,21 +473,25 @@ export default function MentalHealthPage() {
               <Heart size={20} style={{ color: "var(--color-coral-500)" }} />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold" style={{ color: "var(--color-slate-800)" }}>Mental wellness companion</h1>
+              <h1 className="text-2xl font-semibold" style={{ color: "var(--color-slate-800)" }}>{copy.title}</h1>
               <p className="text-xs" style={{ color: "var(--color-slate-500)" }}>
-                A space to be heard. Not a therapist. Listens first, doesn't rush to advice.
+                {copy.subtitle}
                 {stats && ` · grounded in ${stats.total_records || 600} cleaned cases`}
               </p>
             </div>
           </div>
           <div className="patient-stat-grid">
             <div className="patient-stat-card">
-              <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Check-ins</p>
-              <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>{session.mentalHealthCheckins?.length || 0} saved</p>
+              <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.checkins}</p>
+              <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>{session.mentalHealthCheckins?.length || 0} {copy.saved}</p>
             </div>
             <div className="patient-stat-card">
-              <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Language</p>
+              <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.language}</p>
               <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>{getLanguageName(session.language)}</p>
+            </div>
+            <div className="patient-stat-card">
+              <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.appointments}</p>
+              <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>{session.mentalHealthAppointments?.length || 0} {copy.requested}</p>
             </div>
           </div>
         </div>
@@ -236,10 +504,10 @@ export default function MentalHealthPage() {
             <AlertCircle size={18} style={{ color: "var(--color-coral-600)", marginTop: 2 }} />
             <div className="flex-1">
               <p className="text-sm font-medium" style={{ color: "var(--color-coral-700)" }}>
-                What you're feeling matters and I want you to be safe.
+                {copy.crisisTitle}
               </p>
               <p className="text-xs mt-1" style={{ color: "var(--color-coral-600)" }}>
-                In the US: <strong>Call or text 988</strong> (Suicide & Crisis Lifeline). Outside the US: please reach a local crisis line.
+                {copy.crisisBody}
               </p>
             </div>
           </div>
@@ -250,10 +518,10 @@ export default function MentalHealthPage() {
         {/* ============================================================ */}
         <div className="warm-card p-5">
           <h2 className="font-semibold mb-1" style={{ color: "var(--color-slate-800)" }}>
-            1. Let's Talk — How Are You Feeling Today?
+            {copy.sectionTalk}
           </h2>
           <p className="text-xs mb-4" style={{ color: "var(--color-slate-500)" }}>
-            Speak or type in your language. We'll understand.
+            {copy.sectionTalkSub}
           </p>
 
           {/* Language badge */}
@@ -277,7 +545,7 @@ export default function MentalHealthPage() {
           {/* Divider */}
           <div className="flex items-center gap-3 mb-3">
             <div className="flex-1 h-px" style={{ background: "var(--color-cream-200)" }} />
-            <span className="text-xs font-medium" style={{ color: "var(--color-slate-400)" }}>OR TYPE YOUR MESSAGE</span>
+            <span className="text-xs font-medium" style={{ color: "var(--color-slate-400)" }}>{copy.typeDivider}</span>
             <div className="flex-1 h-px" style={{ background: "var(--color-cream-200)" }} />
           </div>
 
@@ -321,7 +589,7 @@ export default function MentalHealthPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendChat()}
-              placeholder="Take your time..."
+              placeholder={copy.chatPlaceholder}
               disabled={busy}
               className="flex-1 px-3 py-2.5 rounded-xl text-sm focus:outline-none"
               style={{ background: "var(--color-cream-50)", border: "1px solid var(--color-cream-200)" }}
@@ -337,10 +605,10 @@ export default function MentalHealthPage() {
           {messages.length > 2 && messages[messages.length - 1].role === "assistant" && (
             <div className="mt-3 p-3 rounded-xl" style={{ background: "var(--color-cream-100)" }}>
               <p className="text-xs" style={{ color: "var(--color-slate-500)" }}>
-                <span className="font-medium" style={{ color: "var(--color-slate-600)" }}>You said:</span> "{messages[messages.length - 2]?.content}"
+                <span className="font-medium" style={{ color: "var(--color-slate-600)" }}>{copy.youSaid}</span> "{messages[messages.length - 2]?.content}"
               </p>
               <p className="text-xs mt-1">
-                <span className="font-medium" style={{ color: "var(--color-slate-600)" }}>System understood:</span>{" "}
+                <span className="font-medium" style={{ color: "var(--color-slate-600)" }}>{copy.systemUnderstood}</span>{" "}
                 <span style={{ color: "var(--color-slate-700)" }}>{messages[messages.length - 1]?.content?.slice(0, 100)}</span>
               </p>
             </div>
@@ -352,18 +620,18 @@ export default function MentalHealthPage() {
         {/* ============================================================ */}
         <div className="warm-card p-5">
           <h2 className="font-semibold mb-1" style={{ color: "var(--color-slate-800)" }}>
-            2. Your Journal — Your Story Matters
+            {copy.journalTitle}
           </h2>
           <p className="text-xs mb-4" style={{ color: "var(--color-slate-500)" }}>
-            Upload, write, or capture your journal.
+            {copy.journalSub}
           </p>
 
           {/* Tabs */}
           <div className="flex gap-0 mb-4" style={{ borderBottom: "1px solid var(--color-cream-200)" }}>
             {[
-              { key: "write", label: "Write" },
-              { key: "image", label: "Upload Image" },
-              { key: "file", label: "Upload File" },
+              { key: "write", label: copy.tabWrite },
+              { key: "image", label: copy.tabImage },
+              { key: "file", label: copy.tabFile },
             ].map((tab) => (
               <button key={tab.key} onClick={() => setJournalTab(tab.key)}
                 className="px-4 py-2 text-sm font-medium"
@@ -381,7 +649,7 @@ export default function MentalHealthPage() {
               <textarea
                 value={journalText}
                 onChange={(e) => setJournalText(e.target.value.slice(0, 2000))}
-                placeholder="Write your thoughts in your own language..."
+                placeholder={copy.journalPlaceholder}
                 rows={5}
                 className="w-full px-3 py-3 rounded-xl text-sm focus:outline-none resize-none"
                 style={{ background: "var(--color-cream-50)", border: "1px solid var(--color-cream-200)" }}
@@ -400,9 +668,23 @@ export default function MentalHealthPage() {
                 <Image size={18} style={{ color: "var(--color-teal-600)" }} />
               </div>
               <div>
-                <p className="text-sm font-medium" style={{ color: "var(--color-teal-600)" }}>Upload from Journal (Image)</p>
-                <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>JPG, PNG, HEIC</p>
+                <p className="text-sm font-medium" style={{ color: "var(--color-teal-600)" }}>{copy.uploadImageTitle}</p>
+                <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.uploadImageMeta}</p>
               </div>
+              <button
+                onClick={() => imageInputRef.current?.click()}
+                className="ml-auto px-3 py-2 rounded-xl text-sm font-medium"
+                style={{ background: "white", border: "1px solid var(--color-cream-200)", color: "var(--color-slate-700)" }}
+              >
+                {copy.selectImage}
+              </button>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleJournalFile("image", e.target.files?.[0])}
+              />
             </div>
           )}
 
@@ -414,15 +696,36 @@ export default function MentalHealthPage() {
                 <FileText size={18} style={{ color: "var(--color-teal-600)" }} />
               </div>
               <div>
-                <p className="text-sm font-medium" style={{ color: "var(--color-teal-600)" }}>Upload File (PDF, Docx, Txt)</p>
-                <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Max size 10MB</p>
+                <p className="text-sm font-medium" style={{ color: "var(--color-teal-600)" }}>{copy.uploadFileTitle}</p>
+                <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.uploadFileMeta}</p>
               </div>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="ml-auto px-3 py-2 rounded-xl text-sm font-medium"
+                style={{ background: "white", border: "1px solid var(--color-cream-200)", color: "var(--color-slate-700)" }}
+              >
+                {copy.selectFile}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                className="hidden"
+                onChange={(e) => handleJournalFile("file", e.target.files?.[0])}
+              />
+            </div>
+          )}
+
+          {journalAsset?.file_name && (
+            <div className="mt-3 p-3 rounded-xl" style={{ background: "white", border: "1px solid var(--color-cream-200)" }}>
+              <p className="text-xs font-medium" style={{ color: "var(--color-slate-500)" }}>{copy.attached}</p>
+              <p className="text-sm mt-1" style={{ color: "var(--color-slate-700)" }}>{journalAsset.file_name}</p>
             </div>
           )}
 
           <div className="flex items-center gap-1.5 mt-3">
             <Lock size={11} style={{ color: "var(--color-slate-400)" }} />
-            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Your journal is private and secure.</p>
+            <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.privateJournal}</p>
           </div>
         </div>
 
@@ -431,15 +734,15 @@ export default function MentalHealthPage() {
         {/* ============================================================ */}
         <div className="warm-card p-5">
           <h2 className="font-semibold mb-1" style={{ color: "var(--color-slate-800)" }}>
-            3. What's Triggering You?
+            {copy.triggerTitle}
           </h2>
           <p className="text-xs mb-4" style={{ color: "var(--color-slate-500)" }}>
-            Help us understand what affects your well-being.
+            {copy.triggerSub}
           </p>
 
           {/* Intensity slider */}
           <div className="mb-5">
-            <p className="text-sm font-medium mb-2" style={{ color: "var(--color-slate-700)" }}>How intense is it right now?</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "var(--color-slate-700)" }}>{copy.triggerIntensity}</p>
             <div className="relative">
               <div className="relative h-3 rounded-full" style={{ background: "var(--color-cream-200)" }}>
                 <div className="absolute left-0 top-0 h-full rounded-full"
@@ -455,7 +758,7 @@ export default function MentalHealthPage() {
                   style={{ left: `calc(${intensity * 10}% - 8px)`, background: "var(--color-teal-600)", boxShadow: "0 1px 4px rgba(0,0,0,0.2)", pointerEvents: "none" }} />
               </div>
               <div className="flex justify-between mt-2">
-                {["Not at all", "Mild", "Moderate", "High", "Very High"].map((l, i) => (
+                {copy.intensityLabels.map((l) => (
                   <span key={l} className="text-xs"
                     style={{ color: l === intensityLabel ? intensityColor : "var(--color-slate-400)", fontWeight: l === intensityLabel ? 600 : 400 }}>
                     {l}
@@ -467,7 +770,7 @@ export default function MentalHealthPage() {
 
           {/* Category pills */}
           <div className="mb-4">
-            <p className="text-sm font-medium mb-2" style={{ color: "var(--color-slate-700)" }}>What is it regarding?</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "var(--color-slate-700)" }}>{copy.triggerCategory}</p>
             <div className="flex flex-wrap gap-2">
               {TRIGGER_CATEGORIES.map((cat) => {
                 const active = selectedTriggers.includes(cat.key);
@@ -479,7 +782,7 @@ export default function MentalHealthPage() {
                       color: active ? "var(--color-teal-700)" : "var(--color-slate-600)",
                       border: `1px solid ${active ? "var(--color-teal-300)" : "var(--color-cream-200)"}`,
                     }}>
-                    <cat.icon size={14} /> {cat.label}
+                    <cat.icon size={14} /> {copy.categories[cat.key] || cat.key}
                   </button>
                 );
               })}
@@ -488,11 +791,11 @@ export default function MentalHealthPage() {
 
           {/* Notes */}
           <div>
-            <p className="text-sm font-medium mb-2" style={{ color: "var(--color-slate-700)" }}>Anything you want to add?</p>
+            <p className="text-sm font-medium mb-2" style={{ color: "var(--color-slate-700)" }}>{copy.triggerNotes}</p>
             <textarea
               value={triggerNotes}
               onChange={(e) => setTriggerNotes(e.target.value.slice(0, 500))}
-              placeholder="Tell us more..."
+              placeholder={copy.triggerPlaceholder}
               rows={3}
               className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none resize-none"
               style={{ background: "var(--color-cream-50)", border: "1px solid var(--color-cream-200)" }}
@@ -507,13 +810,13 @@ export default function MentalHealthPage() {
         {matches.length > 0 && (
           <div className="warm-card p-5">
             <div className="flex items-center gap-2 mb-1">
-              <Database size={14} style={{ color: "var(--color-info-600)" }} />
+                <Database size={14} style={{ color: "var(--color-info-600)" }} />
               <h2 className="font-semibold" style={{ color: "var(--color-slate-800)" }}>
-                4. What's Helped People Like You
+                {copy.patternsTitle}
               </h2>
             </div>
             <p className="text-xs mb-3" style={{ color: "var(--color-slate-400)" }}>
-              From anonymized cases in our dataset
+              {copy.patternsSub}
             </p>
             <div className="space-y-3">
               {matches.map((m) => (
@@ -534,7 +837,7 @@ export default function MentalHealthPage() {
               ))}
             </div>
             <p className="text-xs mt-3 italic" style={{ color: "var(--color-slate-400)" }}>
-              These are patterns, not prescriptions. If anything resonates, talking to a professional is always an option.
+              {copy.patternsFootnote}
             </p>
           </div>
         )}
@@ -544,28 +847,28 @@ export default function MentalHealthPage() {
         {/* ============================================================ */}
         <div className="warm-card p-5">
           <h2 className="font-semibold mb-1" style={{ color: "var(--color-slate-800)" }}>
-            5. Rate Your Feelings Right Now
+            {copy.feelingsTitle}
           </h2>
           <p className="text-xs mb-4" style={{ color: "var(--color-slate-500)" }}>
-            Slide to express intensity
+            {copy.feelingsSub}
           </p>
 
           <div className="space-y-1">
-            <GradientSlider label="Anxiety Level" value={feelings.anxiety} onChange={(v) => updateFeeling("anxiety", v)}
+            <GradientSlider label={copy.feelingLabels.anxiety} value={feelings.anxiety} onChange={(v) => updateFeeling("anxiety", v)}
               colors={["#3B82F6", "#8B5CF6", "#A78BFA"]} />
-            <GradientSlider label="Stress Level" value={feelings.stress} onChange={(v) => updateFeeling("stress", v)}
+            <GradientSlider label={copy.feelingLabels.stress} value={feelings.stress} onChange={(v) => updateFeeling("stress", v)}
               colors={["#3B82F6", "#8B5CF6", "#A78BFA"]} />
-            <GradientSlider label="Energy Level" value={feelings.energy} onChange={(v) => updateFeeling("energy", v)}
+            <GradientSlider label={copy.feelingLabels.energy} value={feelings.energy} onChange={(v) => updateFeeling("energy", v)}
               colors={["#E24B4A", "#E5A030", "#3AA882"]} />
-            <GradientSlider label="Focus & Concentration" value={feelings.focus} onChange={(v) => updateFeeling("focus", v)}
+            <GradientSlider label={copy.feelingLabels.focus} value={feelings.focus} onChange={(v) => updateFeeling("focus", v)}
               colors={["#3B82F6", "#8B5CF6", "#A78BFA"]} />
-            <GradientSlider label="Hopelessness / Despair" value={feelings.hopelessness} onChange={(v) => updateFeeling("hopelessness", v)}
+            <GradientSlider label={copy.feelingLabels.hopelessness} value={feelings.hopelessness} onChange={(v) => updateFeeling("hopelessness", v)}
               colors={["#E24B4A", "#8B5CF6"]} />
-            <GradientSlider label="Anger / Irritability" value={feelings.anger} onChange={(v) => updateFeeling("anger", v)}
+            <GradientSlider label={copy.feelingLabels.anger} value={feelings.anger} onChange={(v) => updateFeeling("anger", v)}
               colors={["#E5A030", "#E24B4A"]} />
-            <GradientSlider label="Confidence / Self-Esteem" value={feelings.confidence} onChange={(v) => updateFeeling("confidence", v)}
+            <GradientSlider label={copy.feelingLabels.confidence} value={feelings.confidence} onChange={(v) => updateFeeling("confidence", v)}
               colors={["#3B82F6", "#8B5CF6", "#3AA882"]} />
-            <GradientSlider label="Feeling Overwhelmed" value={feelings.overwhelmed} onChange={(v) => updateFeeling("overwhelmed", v)}
+            <GradientSlider label={copy.feelingLabels.overwhelmed} value={feelings.overwhelmed} onChange={(v) => updateFeeling("overwhelmed", v)}
               colors={["#3B82F6", "#8B5CF6", "#E24B4A", "#3AA882"]} />
           </div>
         </div>
@@ -575,14 +878,14 @@ export default function MentalHealthPage() {
         {/* ============================================================ */}
         <div className="warm-card p-5">
           <h2 className="font-semibold mb-1" style={{ color: "var(--color-slate-800)" }}>
-            6. Therapeutic Recommendations
+            {copy.recommendationsTitle}
           </h2>
           <p className="text-xs mb-4" style={{ color: "var(--color-slate-500)" }}>
-            Personalized suggestions based on your check-in.
+            {copy.recommendationsSub}
           </p>
 
           <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-cream-200)" }}>
-            {RECOMMENDATIONS.map((rec, i) => (
+            {recommendationList.map((rec, i) => (
               <div key={i}
                 className="flex items-center gap-3 p-4"
                 style={{ borderBottom: i < RECOMMENDATIONS.length - 1 ? "1px solid var(--color-cream-100)" : "none" }}>
@@ -600,12 +903,59 @@ export default function MentalHealthPage() {
           </div>
 
           <div className="flex justify-center mt-4">
-            <button className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium"
+              <button className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium"
               style={{ border: "1px solid var(--color-teal-300)", color: "var(--color-teal-600)" }}>
-              View More Resources <ChevronRight size={14} />
+              {copy.viewResources} <ChevronRight size={14} />
             </button>
           </div>
         </div>
+
+        {(latestCheckin || latestAppointment) && (
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+            <div className="warm-card p-5 xl:col-span-8">
+              <div className="flex items-center gap-2 mb-2">
+                <BookHeart size={16} style={{ color: "var(--color-coral-500)" }} />
+                <h2 className="font-semibold" style={{ color: "var(--color-slate-800)" }}>{copy.latestSummary}</h2>
+              </div>
+              <p className="text-xs mb-3" style={{ color: "var(--color-slate-500)" }}>{copy.doctorView}</p>
+              <div className="space-y-3">
+                {latestCheckin?.summary && (
+                  <div className="p-3 rounded-xl" style={{ background: "var(--color-cream-50)", border: "1px solid var(--color-cream-200)" }}>
+                    <p className="text-sm" style={{ color: "var(--color-slate-700)" }}>{latestCheckin.summary}</p>
+                  </div>
+                )}
+                {latestCheckin?.journal_text && (
+                  <div>
+                    <p className="text-xs font-medium mb-1" style={{ color: "var(--color-slate-500)" }}>{copy.latestJournal}</p>
+                    <p className="text-sm" style={{ color: "var(--color-slate-700)" }}>{latestCheckin.journal_text}</p>
+                  </div>
+                )}
+                {latestCheckin?.journal_asset?.file_name && (
+                  <div>
+                    <p className="text-xs font-medium mb-1" style={{ color: "var(--color-slate-500)" }}>{copy.latestAttachment}</p>
+                    <p className="text-sm" style={{ color: "var(--color-slate-700)" }}>{latestCheckin.journal_asset.file_name}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="warm-card p-5 xl:col-span-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar size={16} style={{ color: "var(--color-teal-600)" }} />
+                <h2 className="font-semibold" style={{ color: "var(--color-slate-800)" }}>{copy.latestAppointment}</h2>
+              </div>
+              {latestAppointment ? (
+                <div className="space-y-2 text-sm" style={{ color: "var(--color-slate-700)" }}>
+                  <p>{latestAppointment.request_reason}</p>
+                  {latestAppointment.preferred_contact && <p style={{ color: "var(--color-slate-500)" }}>{latestAppointment.preferred_contact}</p>}
+                  {latestAppointment.preferred_time && <p style={{ color: "var(--color-slate-500)" }}>{latestAppointment.preferred_time}</p>}
+                  <p className="text-xs" style={{ color: "var(--color-teal-600)" }}>{latestAppointment.status || copy.appointmentStatusRequested}</p>
+                </div>
+              ) : (
+                <p className="text-sm" style={{ color: "var(--color-slate-500)" }}>{copy.appointmentMeta}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ============================================================ */}
         {/* FEEDBACK + BOOK APPOINTMENT BAR                               */}
@@ -623,11 +973,11 @@ export default function MentalHealthPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium" style={{ color: "var(--color-slate-700)" }}>{patientName}</p>
-                  <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Patient</p>
+                  <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>{copy.patient}</p>
                 </div>
               </div>
               <p className="text-sm font-medium mb-3" style={{ color: "var(--color-slate-700)" }}>
-                Did these recommendations help?
+                {copy.feedbackQuestion}
               </p>
               <div className="flex gap-2">
                 <button onClick={() => setRecFeedback("helpful")}
@@ -637,7 +987,7 @@ export default function MentalHealthPage() {
                     color: recFeedback === "helpful" ? "var(--color-teal-700)" : "var(--color-teal-600)",
                     border: `1px solid ${recFeedback === "helpful" ? "var(--color-teal-300)" : "var(--color-cream-200)"}`,
                   }}>
-                  <span>👍</span> Yes, I'm feeling better!
+                  <span>👍</span> {copy.feedbackHelpful}
                 </button>
                 <button onClick={() => setRecFeedback("need_more")}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium"
@@ -646,7 +996,7 @@ export default function MentalHealthPage() {
                     color: recFeedback === "need_more" ? "var(--color-coral-600)" : "var(--color-slate-600)",
                     border: `1px solid ${recFeedback === "need_more" ? "var(--color-coral-200)" : "var(--color-cream-200)"}`,
                   }}>
-                  <span>👎</span> Not really, I need more support
+                  <span>👎</span> {copy.feedbackNeedMore}
                 </button>
               </div>
             </div>
@@ -656,18 +1006,46 @@ export default function MentalHealthPage() {
               <div className="flex items-start gap-2 mb-2">
                 <Heart size={16} style={{ color: "var(--color-coral-500)" }} />
                 <div>
-                  <p className="text-sm font-semibold" style={{ color: "var(--color-slate-800)" }}>We're here for you</p>
+                  <p className="text-sm font-semibold" style={{ color: "var(--color-slate-800)" }}>{copy.supportTitle}</p>
                   <p className="text-xs mt-0.5" style={{ color: "var(--color-slate-500)" }}>
-                    It's okay to need professional support. Let's connect you with a mental health provider.
+                    {copy.supportBody}
                   </p>
                 </div>
               </div>
-              <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold mt-2"
+              <div className="space-y-2 mt-3">
+                <input
+                  value={appointmentReason}
+                  onChange={(e) => setAppointmentReason(e.target.value)}
+                  placeholder={copy.appointmentReasonPlaceholder}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none"
+                  style={{ background: "white", border: "1px solid var(--color-cream-200)" }}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input
+                    value={preferredContact}
+                    onChange={(e) => setPreferredContact(e.target.value)}
+                    placeholder={copy.appointmentContact}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none"
+                    style={{ background: "white", border: "1px solid var(--color-cream-200)" }}
+                  />
+                  <input
+                    value={preferredTime}
+                    onChange={(e) => setPreferredTime(e.target.value)}
+                    placeholder={copy.appointmentTimePlaceholder}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none"
+                    style={{ background: "white", border: "1px solid var(--color-cream-200)" }}
+                  />
+                </div>
+              </div>
+              <button
+                onClick={requestAppointment}
+                disabled={appointmentBusy || !appointmentReason.trim()}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold mt-3"
                 style={{ background: "var(--color-coral-400)", color: "white" }}>
-                <Calendar size={14} /> Book Session with a Mental Health Provider
+                <Calendar size={14} /> {appointmentBusy ? copy.appointmentSaving : appointmentSaved ? copy.appointmentRequested : copy.appointmentButton}
               </button>
               <p className="text-xs text-center mt-2" style={{ color: "var(--color-slate-400)" }}>
-                Available 24/7 · Multilingual support · Secure & confidential
+                {copy.appointmentMeta}
               </p>
             </div>
           </div>
@@ -687,11 +1065,11 @@ export default function MentalHealthPage() {
               opacity: submitting ? 0.7 : 1,
             }}>
             {submitted ? (
-              <><Sparkles size={14} /> Check-in saved — your doctor can see the summary</>
+              <><Sparkles size={14} /> {copy.submitSaved}</>
             ) : submitting ? (
-              <><div className="spinner" style={{ width: 14, height: 14, borderTopColor: "white", borderColor: "rgba(255,255,255,0.3)" }} /> Saving check-in...</>
+              <><div className="spinner" style={{ width: 14, height: 14, borderTopColor: "white", borderColor: "rgba(255,255,255,0.3)" }} /> {copy.submitSaving}</>
             ) : (
-              <><Send size={14} /> Submit Wellness Check-in</>
+              <><Send size={14} /> {copy.submitButton}</>
             )}
           </button>
         </div>
@@ -703,11 +1081,11 @@ export default function MentalHealthPage() {
           <div className="flex items-center gap-1.5">
             <Lock size={11} style={{ color: "var(--color-slate-400)" }} />
             <p className="text-xs" style={{ color: "var(--color-slate-500)" }}>
-              Your privacy is our priority. All your data is encrypted and protected.
+              {copy.privacy}
             </p>
           </div>
           <p className="text-xs" style={{ color: "var(--color-slate-500)" }}>
-            Need immediate help? <a href="tel:988" className="font-semibold" style={{ color: "var(--color-slate-700)" }}>Call 988</a> or visit{" "}
+            {copy.helpNow} <a href="tel:988" className="font-semibold" style={{ color: "var(--color-slate-700)" }}>{copy.call988}</a> {copy.findHelpPrefix}{" "}
             <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" className="font-semibold" style={{ color: "var(--color-slate-700)" }}>findahelpline.com</a>
           </p>
         </div>

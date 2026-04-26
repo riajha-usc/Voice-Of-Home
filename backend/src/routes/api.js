@@ -13,6 +13,27 @@ const mentalHealth = require("../services/mental-health-service");
 
 const router = express.Router();
 
+function topFeelingLabel(feelings = {}) {
+  const entries = Object.entries(feelings).filter(([, value]) => typeof value === "number");
+  if (entries.length === 0) return null;
+  entries.sort((a, b) => b[1] - a[1]);
+  return entries[0][0].replace(/_/g, " ");
+}
+
+function buildMentalHealthSummary({ feelings, intensity, trigger_categories, triggers, journal_text, recommendations_feedback, journal_asset }) {
+  const parts = [];
+  if (typeof intensity === "number") parts.push(`Intensity ${intensity}/10`);
+  const topFeeling = topFeelingLabel(feelings);
+  if (topFeeling) parts.push(`highest signal: ${topFeeling}`);
+  if (trigger_categories?.length) parts.push(`triggers: ${trigger_categories.join(", ")}`);
+  else if (triggers) parts.push(`trigger notes shared`);
+  if (journal_text) parts.push(`journal captured`);
+  if (journal_asset?.file_name) parts.push(`journal file: ${journal_asset.file_name}`);
+  if (recommendations_feedback === "helpful") parts.push(`recommendations felt helpful`);
+  if (recommendations_feedback === "need_more") parts.push(`patient requested more support`);
+  return parts.length > 0 ? parts.join(" · ") : "Wellness check-in submitted.";
+}
+
 // -------------------------------------------------------------------------
 // Health
 // -------------------------------------------------------------------------
@@ -400,8 +421,18 @@ router.get("/mental-health/stats", (req, res) => {
 
 // Submit a mental health check-in (mood ratings, triggers, journal, recommendations feedback)
 router.post("/mental-health/checkin", async (req, res) => {
-  const { session_id, feelings, triggers, journal_text, intensity, trigger_categories, recommendations_feedback } = req.body;
+  const { session_id, feelings, triggers, journal_text, intensity, trigger_categories, recommendations_feedback, journal_asset } = req.body;
   if (!session_id) return res.status(400).json({ error: "session_id is required." });
+
+  const summary = buildMentalHealthSummary({
+    feelings,
+    intensity,
+    trigger_categories,
+    triggers,
+    journal_text,
+    recommendations_feedback,
+    journal_asset,
+  });
 
   const checkin = {
     id: uuidv4(),
@@ -411,7 +442,9 @@ router.post("/mental-health/checkin", async (req, res) => {
     trigger_categories: trigger_categories || [],  // ["Work", "Family", ...]
     intensity: intensity ?? null,          // 0-10
     journal_text: journal_text || null,
+    journal_asset: journal_asset || null,
     recommendations_feedback: recommendations_feedback || null,  // "helpful" | "need_more"
+    summary,
   };
 
   try {
@@ -419,6 +452,27 @@ router.post("/mental-health/checkin", async (req, res) => {
     res.json({ checkin, session: updated });
   } catch (err) {
     res.status(500).json({ error: "Failed to save check-in.", details: err.message });
+  }
+});
+
+router.post("/mental-health/appointments", async (req, res) => {
+  const { session_id, request_reason, preferred_contact, preferred_time } = req.body;
+  if (!session_id) return res.status(400).json({ error: "session_id is required." });
+
+  const appointment = {
+    id: uuidv4(),
+    timestamp: new Date().toISOString(),
+    status: "requested",
+    request_reason: request_reason || "Patient requested a mental health follow-up.",
+    preferred_contact: preferred_contact || null,
+    preferred_time: preferred_time || null,
+  };
+
+  try {
+    const updated = await sessions.appendToArray(session_id, "mental_health_appointments", appointment);
+    res.json({ appointment, session: updated });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to request appointment.", details: err.message });
   }
 });
 
