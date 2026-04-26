@@ -1,10 +1,3 @@
-# Voices of Home
-
-### A Multi-Agent Cultural Intelligence Platform for Healthcare
-**LA Hacks 2026 | Catalyst for Care + Agentverse**
-
-> *"We do not translate words. We translate worlds."*
-
 <div align="center">
 
 <br />
@@ -26,6 +19,10 @@
 ```
 
 ### *We do not translate words. We translate worlds.*
+
+### A Multi-Agent Cultural Intelligence Platform for Healthcare
+**LA Hacks 2026 | Catalyst for Care + Agentverse**
+
 
 <br />
 
