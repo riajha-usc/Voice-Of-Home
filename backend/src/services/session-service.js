@@ -40,6 +40,7 @@ function emptySessionShape(sessionId, init = {}) {
     dietary_results: init.dietary_results || [],
     voice_messages: init.voice_messages || [],
     chat_history: init.chat_history || [],
+    mental_health_checkins: init.mental_health_checkins || [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

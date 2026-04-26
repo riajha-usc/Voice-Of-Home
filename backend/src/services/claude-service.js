@@ -4,10 +4,8 @@
 //   1. ASI:One (asi1-ultra) — preferred for both care and mental_health surfaces.
 //      No Anthropic dependency, runs the same model OmegaClaw uses, and aligns
 //      with the Fetch.ai track. Endpoint: https://api.asi1.ai/v1/chat/completions
-//   2. Anthropic Claude Sonnet — fallback if ASI:One key is missing.
-//   3. Mock — if neither is configured, returns helpful canned replies.
+//   2. Mock — if ASI:One is not configured, returns helpful canned replies.
 
-let anthropic = null;
 let asioneReady = false;
 
 function initClaude() {
@@ -15,10 +13,10 @@ function initClaude() {
   if (asiKey && asiKey !== "your_asi_one_key") {
     asioneReady = true;
     console.log("[Chat] ASI:One asi1-ultra ready (primary).");
-  } else {
-    console.warn("[Chat] ASI_ONE_API_KEY not set. ASI:One will be unavailable.");
+    return true;
   }
-  return true;
+  console.warn("[Chat] ASI_ONE_API_KEY not set — chat will run in mock mode.");
+  return false;
 }
 
 function buildCareSystemPrompt(patientContext, langName) {
@@ -85,15 +83,6 @@ async function chat(message, patientContext = {}, chatHistory = [], languageCode
     }
   }
 
-  // Anthropic fallback
-  if (anthropic) {
-    try {
-      return await chatViaAnthropic(systemPrompt, message, chatHistory);
-    } catch (err) {
-      console.error("[Chat] Anthropic call failed:", err.message);
-    }
-  }
-
   // Mock
   return {
     reply: getMockReply(message, surface),
@@ -138,23 +127,6 @@ async function chatViaAsiOne(systemPrompt, message, chatHistory, surface) {
     model: "asi1-ultra",
     usage: data?.usage,
   };
-}
-
-async function chatViaAnthropic(systemPrompt, message, chatHistory) {
-  const messages = [
-    ...chatHistory.map((m) => ({ role: m.role || "user", content: m.content || m.user_message || m.assistant_message })).filter((m) => m.content),
-    { role: "user", content: message },
-  ];
-
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 500,
-    system: systemPrompt,
-    messages,
-  });
-
-  const reply = response.content[0].text;
-  return { reply, response: reply, method: "claude" };
 }
 
 function getMockReply(message, surface) {

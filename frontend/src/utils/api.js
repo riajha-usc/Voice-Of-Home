@@ -85,4 +85,7 @@ export const api = {
     request("/mental-health/match", { method: "POST", body: { text, top_k: topK || 3 } }),
   getMentalHealthPersonas: () => request("/mental-health/personas"),
   getMentalHealthStats: () => request("/mental-health/stats"),
+
+  submitMentalHealthCheckin: (data) =>
+    request("/mental-health/checkin", { method: "POST", body: data }),
 };

@@ -215,6 +215,7 @@ export function SessionProvider({ children }) {
     dietaryResults: sessionRecord?.dietary_results || [],
     voiceMessages: sessionRecord?.voice_messages || [],
     chatHistory: sessionRecord?.chat_history || [],
+    mentalHealthCheckins: sessionRecord?.mental_health_checkins || [],
     onboarded,
     isHydrating,
   };

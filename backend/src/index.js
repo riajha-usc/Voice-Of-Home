@@ -1,9 +1,3 @@
-// const express = require("express");
-// const cors = require("cors");
-// const path = require("path");
-// require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
-
-
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -56,7 +50,7 @@ async function start() {
 
   console.log("\n--- Service Status ---");
   console.log(`  Gemini:     ${geminiReady ? "READY" : "MOCK MODE (set GOOGLE_API_KEY)"}`);
-  console.log(`  Claude:     ${claudeReady ? "READY" : "MOCK MODE (set ANTHROPIC_API_KEY)"}`);
+  console.log(`  Chat (ASI): ${claudeReady ? "READY" : "MOCK MODE (set ASI_ONE_API_KEY)"}`);
   console.log(`  MongoDB:    ${dbReady ? "CONNECTED" : "IN-MEMORY (set MONGODB_URI)"}`);
   console.log(`  ElevenLabs: ${process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_API_KEY !== "your_elevenlabs_api_key" ? "READY" : "MOCK MODE (set ELEVENLABS_API_KEY)"}`);
   console.log(`  Cloudinary: ${cloudinaryReady ? "READY" : "PASSTHROUGH (set CLOUDINARY_* vars)"}`);

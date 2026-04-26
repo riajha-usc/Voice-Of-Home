@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route, useLocation, Link, Navigate } from "react-router-dom";
-import { Stethoscope, Users, LogOut } from "lucide-react";
+import { BrowserRouter, Routes, Route, Outlet, useLocation, Link, Navigate } from "react-router-dom";
+import { Stethoscope, LogOut } from "lucide-react";
 import { SessionProvider, useSession } from "./hooks/useSession";
 import FamilyNav from "./components/shared/FamilyNav";
+import DoctorLayout from "./components/doctor/DoctorLayout";
 import SymptomsPage from "./pages/SymptomsPage";
 import DietPage from "./pages/DietPage";
 import VoicePage from "./pages/VoicePage";
@@ -9,15 +10,28 @@ import ChatPage from "./pages/ChatPage";
 import FamilyPage from "./pages/FamilyPage";
 import MentalHealthPage from "./pages/MentalHealthPage";
 import OnboardingPage from "./pages/OnboardingPage";
-import DoctorDashboard from "./pages/DoctorDashboard";
+import DoctorHome from "./pages/DoctorHome";
+import DoctorPatientDetail from "./pages/DoctorPatientDetail";
+
+/* Wrapper layout for the family/patient-facing side */
+function FamilyLayout() {
+  return (
+    <div className="lg:flex">
+      <FamilyNav />
+      <div className="flex-1">
+        <Outlet />
+      </div>
+    </div>
+  );
+}
 
 function ViewSwitcher() {
   const location = useLocation();
   const { reset } = useSession();
-  const isDoctor = location.pathname === "/doctor";
+  const isDoctor = location.pathname.startsWith("/doctor");
   const isOnboarding = location.pathname === "/welcome";
 
-  if (isOnboarding) return null;
+  if (isOnboarding || isDoctor) return null;
 
   return (
     <div className="fixed top-3 right-3 z-50 flex gap-2">
@@ -26,10 +40,10 @@ function ViewSwitcher() {
         style={{ background: "rgba(255,255,255,0.85)", color: "var(--color-slate-600)", border: "1px solid var(--color-cream-200)", backdropFilter: "blur(8px)" }}>
         <LogOut size={12} /> Reset
       </button>
-      <Link to={isDoctor ? "/" : "/doctor"}
+      <Link to="/doctor"
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-        style={{ background: isDoctor ? "var(--color-coral-400)" : "var(--color-teal-500)", color: "white", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
-        {isDoctor ? <><Users size={12} /> Family view</> : <><Stethoscope size={12} /> Doctor view</>}
+        style={{ background: "var(--color-teal-500)", color: "white", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
+        <Stethoscope size={12} /> Doctor view
       </Link>
     </div>
   );
@@ -38,11 +52,11 @@ function ViewSwitcher() {
 function Layout() {
   const location = useLocation();
   const { session } = useSession();
-  const isDoctor = location.pathname === "/doctor";
+  const isDoctor = location.pathname.startsWith("/doctor");
   const isOnboarding = location.pathname === "/welcome";
 
   // If we don't have a session yet, force the onboarding flow.
-  if (!session.onboarded && !isOnboarding) {
+  if (!session.onboarded && !isOnboarding && !isDoctor) {
     return <Navigate to="/welcome" replace />;
   }
   // If we DO have a session and the user is on /welcome, push them home.
@@ -53,30 +67,31 @@ function Layout() {
   return (
     <div style={{ background: "var(--color-cream-50)", minHeight: "100vh" }}>
       <ViewSwitcher />
-      {isOnboarding ? (
-        <Routes>
-          <Route path="/welcome" element={<OnboardingPage />} />
-        </Routes>
-      ) : isDoctor ? (
-        <Routes>
-          <Route path="/doctor" element={<DoctorDashboard />} />
-        </Routes>
-      ) : (
-        <div className="lg:flex">
-          <FamilyNav />
-          <div className="flex-1">
-            <Routes>
-              <Route path="/" element={<SymptomsPage />} />
-              <Route path="/diet" element={<DietPage />} />
-              <Route path="/voice" element={<VoicePage />} />
-              <Route path="/chat" element={<ChatPage />} />
-              <Route path="/family" element={<FamilyPage />} />
-              <Route path="/wellness" element={<MentalHealthPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
-        </div>
-      )}
+      <Routes>
+        {/* Onboarding */}
+        <Route path="/welcome" element={<OnboardingPage />} />
+
+        {/* Doctor portal — nested under DoctorLayout with sidebar */}
+        <Route path="/doctor" element={<DoctorLayout />}>
+          <Route index element={<DoctorHome />} />
+          <Route path="patient" element={<DoctorPatientDetail />} />
+          <Route path="patient/:id" element={<DoctorPatientDetail />} />
+          <Route path="patients" element={<DoctorHome />} />
+          <Route path="search" element={<DoctorPatientDetail />} />
+        </Route>
+
+        {/* Family / patient-facing views — nested under FamilyLayout */}
+        <Route element={<FamilyLayout />}>
+          <Route path="/" element={<SymptomsPage />} />
+          <Route path="/diet" element={<DietPage />} />
+          <Route path="/voice" element={<VoicePage />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/family" element={<FamilyPage />} />
+          <Route path="/wellness" element={<MentalHealthPage />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }

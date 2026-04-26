@@ -283,3 +283,22 @@ body {
 .bottom-nav a.active .nav-dot {
   background: var(--color-coral-400);
 }
+
+/* Doctor sidebar nav */
+.doctor-nav-item {
+  color: var(--color-slate-500);
+}
+
+.doctor-nav-item:hover {
+  background: var(--color-cream-100);
+  color: var(--color-slate-700);
+}
+
+.doctor-nav-active {
+  background: var(--color-teal-50);
+  color: var(--color-teal-700);
+}
+
+.doctor-nav-active:hover {
+  background: var(--color-teal-50);
+}

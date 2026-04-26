@@ -25,8 +25,7 @@ router.get("/health", (req, res) => {
     challenges: ["Fetch.ai", "Cloudinary", "Gemini", "ElevenLabs", "Zetic", "GoDaddy", "MongoDB Atlas"],
     apis: {
       gemini: !!process.env.GOOGLE_API_KEY && process.env.GOOGLE_API_KEY !== "your_gemini_api_key",
-      claude: !!process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== "your_anthropic_api_key",
-      asione: !!process.env.ASI_ONE_API_KEY && process.env.ASI_ONE_API_KEY !== "your_asi_one_key",
+      chat_asi_one: !!process.env.ASI_ONE_API_KEY && process.env.ASI_ONE_API_KEY !== "your_asi_one_key",
       elevenlabs: !!process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_API_KEY !== "your_elevenlabs_api_key",
       cloudinary: !!process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_KEY !== "your_api_key",
       mongodb: !!process.env.MONGODB_URI && !process.env.MONGODB_URI.includes("username:password"),
@@ -356,6 +355,30 @@ router.get("/mental-health/personas", (req, res) => {
 
 router.get("/mental-health/stats", (req, res) => {
   res.json(mentalHealth.datasetStats());
+});
+
+// Submit a mental health check-in (mood ratings, triggers, journal, recommendations feedback)
+router.post("/mental-health/checkin", async (req, res) => {
+  const { session_id, feelings, triggers, journal_text, intensity, trigger_categories, recommendations_feedback } = req.body;
+  if (!session_id) return res.status(400).json({ error: "session_id is required." });
+
+  const checkin = {
+    id: uuidv4(),
+    timestamp: new Date().toISOString(),
+    feelings: feelings || {},              // { anxiety: 30, stress: 40, energy: 60, ... }
+    triggers: triggers || null,            // free text
+    trigger_categories: trigger_categories || [],  // ["Work", "Family", ...]
+    intensity: intensity ?? null,          // 0-10
+    journal_text: journal_text || null,
+    recommendations_feedback: recommendations_feedback || null,  // "helpful" | "need_more"
+  };
+
+  try {
+    const updated = await sessions.appendToArray(session_id, "mental_health_checkins", checkin);
+    res.json({ checkin, session: updated });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save check-in.", details: err.message });
+  }
 });
 
 // -------------------------------------------------------------------------
