@@ -4,6 +4,7 @@ const { searchKnowledgeBase } = require("./knowledge-base");
 let genAI = null;
 let model = null;
 let visionModel = null;
+const PRIMARY_MODEL = "gemma-4-31b-it";
 
 function initGemini() {
   const apiKey = process.env.GOOGLE_API_KEY;
@@ -14,9 +15,9 @@ function initGemini() {
 
   const { GoogleGenerativeAI } = require("@google/generative-ai");
   genAI = new GoogleGenerativeAI(apiKey);
-  model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-  visionModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-  console.log("[Gemini] Initialized with gemini-2.5-flash.");
+  model = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
+  visionModel = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
+  console.log(`[Gemini] Initialized with ${PRIMARY_MODEL}.`);
   return true;
 }
 

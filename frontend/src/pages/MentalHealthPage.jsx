@@ -200,17 +200,33 @@ export default function MentalHealthPage() {
   const intensityColor = intensity <= 4 ? "var(--color-teal-600)" : intensity <= 6 ? "var(--color-amber-600)" : "var(--color-coral-500)";
 
   return (
-    <div className="min-h-screen p-6 pb-32 lg:pb-6">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="patient-page pb-32 lg:pb-6">
+      <div className="space-y-6">
         {/* Page header */}
-        <div className="flex items-center gap-2 mb-1">
-          <Heart size={20} style={{ color: "var(--color-coral-500)" }} />
-          <h1 className="text-xl font-semibold" style={{ color: "var(--color-slate-800)" }}>Mental wellness companion</h1>
+        <div className="patient-page-header pt-1">
+          <div className="patient-page-title">
+            <div className="patient-page-title-icon" style={{ background: "var(--color-coral-50)" }}>
+              <Heart size={20} style={{ color: "var(--color-coral-500)" }} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold" style={{ color: "var(--color-slate-800)" }}>Mental wellness companion</h1>
+              <p className="text-xs" style={{ color: "var(--color-slate-500)" }}>
+                A space to be heard. Not a therapist. Listens first, doesn't rush to advice.
+                {stats && ` · grounded in ${stats.total_records || 600} cleaned cases`}
+              </p>
+            </div>
+          </div>
+          <div className="patient-stat-grid">
+            <div className="patient-stat-card">
+              <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Check-ins</p>
+              <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>{session.mentalHealthCheckins?.length || 0} saved</p>
+            </div>
+            <div className="patient-stat-card">
+              <p className="text-xs" style={{ color: "var(--color-slate-400)" }}>Language</p>
+              <p className="text-sm font-semibold mt-1" style={{ color: "var(--color-slate-700)" }}>{getLanguageName(session.language)}</p>
+            </div>
+          </div>
         </div>
-        <p className="text-xs -mt-4" style={{ color: "var(--color-slate-500)" }}>
-          A space to be heard. Not a therapist. Listens first, doesn't rush to advice.
-          {stats && ` · grounded in ${stats.total_records || 600} cleaned cases`}
-        </p>
 
         {/* Crisis banner */}
         {showCrisis && (

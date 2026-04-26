@@ -1,16 +1,8 @@
 // On-device speech-to-text wrapper for Voices of Home.
 //
-// Zetic / Melange challenge integration:
-// - When Voices of Home is embedded in a Zetic Melange-wrapped mobile app,
-//   window.Melange.whisper is available and runs Whisper ENTIRELY on-device
-//   (NPU-accelerated on-device inference). No audio leaves the phone.
-// - In a standard browser (this demo), we fall back to the browser's
-//   Web Speech API. For desktop Safari this is on-device; in Chrome it is
-//   Google-hosted. The UI discloses this honestly.
-//
-// The Listen / synthesis path (ElevenLabs) is always server-side — but
-// the SYMPTOM input path is the sensitive one, and that's what Zetic
-// protects.
+// In browsers that expose a local SpeechRecognition implementation this can
+// stay on-device; in others it may use a cloud speech provider. The UI
+// discloses that capability honestly.
 
 const SPEECH_LANG_MAP = {
   vi: "vi-VN",
@@ -25,18 +17,11 @@ const SPEECH_LANG_MAP = {
   en: "en-US",
 };
 
-export function hasOnDeviceMelange() {
-  return typeof window !== "undefined" && !!(window.Melange && window.Melange.whisper);
-}
-
 export function hasWebSpeechAPI() {
   return typeof window !== "undefined" && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 }
 
 export function getSpeechCapability() {
-  if (hasOnDeviceMelange()) {
-    return { available: true, onDevice: true, label: "Zetic Melange (Whisper NPU, on-device)" };
-  }
   if (hasWebSpeechAPI()) {
     return { available: true, onDevice: false, label: "Browser speech (may use cloud)" };
   }
@@ -53,17 +38,6 @@ export function getSpeechCapability() {
  * @returns {{stop: () => void}}
  */
 export function startSpeechRecognition({ languageCode, onInterim, onFinal, onError }) {
-  // Preferred: Zetic Melange on-device Whisper
-  if (hasOnDeviceMelange()) {
-    const session = window.Melange.whisper.start({
-      language: languageCode,
-      onPartial: (t) => onInterim?.(t),
-      onResult: (t) => onFinal?.(t),
-      onError: (e) => onError?.(e),
-    });
-    return { stop: () => session.stop() };
-  }
-
   // Fallback: browser Web Speech API
   if (!hasWebSpeechAPI()) {
     onError?.(new Error("Speech not supported in this browser. Please type."));

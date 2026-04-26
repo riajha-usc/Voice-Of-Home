@@ -15,6 +15,8 @@ from uagents_core.contrib.protocols.chat import (
 
 SEED = os.getenv("FETCH_AGENT_SEED_PHRASE", "cultural_nlp_agent_seed_voh")
 
+asyncio.set_event_loop(asyncio.new_event_loop())
+
 agent = Agent(
     name="VoH Cultural NLP Agent",
     seed=SEED,

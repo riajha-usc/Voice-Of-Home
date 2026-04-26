@@ -49,7 +49,7 @@ async function start() {
   const dbReady = await connectDB();
 
   console.log("\n--- Service Status ---");
-  console.log(`  Gemini:     ${geminiReady ? "READY" : "MOCK MODE (set GOOGLE_API_KEY)"}`);
+  console.log(`  Care model: ${geminiReady ? "READY" : "MOCK MODE (set GOOGLE_API_KEY)"}`);
   console.log(`  Chat (ASI): ${claudeReady ? "READY" : "MOCK MODE (set ASI_ONE_API_KEY)"}`);
   console.log(`  MongoDB:    ${dbReady ? "CONNECTED" : "IN-MEMORY (set MONGODB_URI)"}`);
   console.log(`  ElevenLabs: ${process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_API_KEY !== "your_elevenlabs_api_key" ? "READY" : "MOCK MODE (set ELEVENLABS_API_KEY)"}`);

@@ -5,8 +5,6 @@ import FamilyNav from "./components/shared/FamilyNav";
 import DoctorLayout from "./components/doctor/DoctorLayout";
 import SymptomsPage from "./pages/SymptomsPage";
 import DietPage from "./pages/DietPage";
-import VoicePage from "./pages/VoicePage";
-import ChatPage from "./pages/ChatPage";
 import FamilyPage from "./pages/FamilyPage";
 import MentalHealthPage from "./pages/MentalHealthPage";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -16,11 +14,11 @@ import DoctorPatientDetail from "./pages/DoctorPatientDetail";
 /* Wrapper layout for the family/patient-facing side */
 function FamilyLayout() {
   return (
-    <div className="lg:flex">
+    <div className="min-h-screen lg:flex">
       <FamilyNav />
-      <div className="flex-1">
+      <main className="flex-1 min-w-0 pt-16 pb-24 lg:pt-6 lg:pb-6">
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 }
@@ -84,8 +82,6 @@ function Layout() {
         <Route element={<FamilyLayout />}>
           <Route path="/" element={<SymptomsPage />} />
           <Route path="/diet" element={<DietPage />} />
-          <Route path="/voice" element={<VoicePage />} />
-          <Route path="/chat" element={<ChatPage />} />
           <Route path="/family" element={<FamilyPage />} />
           <Route path="/wellness" element={<MentalHealthPage />} />
         </Route>

@@ -22,7 +22,7 @@ router.get("/health", (req, res) => {
     project: "Voices of Home",
     hackathon: "LA Hacks 2026",
     tracks: ["Catalyst for Care", "Agentverse"],
-    challenges: ["Fetch.ai", "Cloudinary", "Gemini", "ElevenLabs", "Zetic", "GoDaddy", "MongoDB Atlas"],
+    challenges: ["Fetch.ai", "Cloudinary", "Gemma", "ElevenLabs", "GoDaddy", "MongoDB Atlas"],
     apis: {
       gemini: !!process.env.GOOGLE_API_KEY && process.env.GOOGLE_API_KEY !== "your_gemini_api_key",
       chat_asi_one: !!process.env.ASI_ONE_API_KEY && process.env.ASI_ONE_API_KEY !== "your_asi_one_key",
@@ -124,6 +124,26 @@ router.get("/patients/:id", async (req, res) => {
   res.json(p);
 });
 
+router.get("/patients", async (req, res) => {
+  try {
+    const { doctor_id, hospital_id } = req.query;
+    let list = [];
+
+    if (doctor_id) {
+      list = await patients.listPatientsByDoctor(doctor_id);
+    } else if (hospital_id) {
+      list = await patients.listPatientsByHospital(hospital_id);
+    } else {
+      return res.status(400).json({ error: "Pass doctor_id or hospital_id." });
+    }
+
+    res.json({ patients: list });
+  } catch (err) {
+    console.error("[API] List patients failed:", err);
+    res.status(500).json({ error: "Could not list patients", details: err.message });
+  }
+});
+
 // -------------------------------------------------------------------------
 // Sessions — the persistence layer for the whole patient/family/doctor flow
 // -------------------------------------------------------------------------
@@ -149,6 +169,27 @@ router.get("/sessions/:id", async (req, res) => {
   const s = await sessions.getSession(req.params.id);
   if (!s) return res.status(404).json({ error: "Session not found" });
   res.json(s);
+});
+
+router.get("/sessions", async (req, res) => {
+  try {
+    const { doctor_id, hospital_id, limit } = req.query;
+    const parsedLimit = parseInt(limit, 10) || 20;
+    let list = [];
+
+    if (doctor_id) {
+      list = await sessions.listSessionsByDoctor(doctor_id, parsedLimit);
+    } else if (hospital_id) {
+      list = await sessions.listSessionsByHospital(hospital_id, parsedLimit);
+    } else {
+      return res.status(400).json({ error: "Pass doctor_id or hospital_id." });
+    }
+
+    res.json({ sessions: list });
+  } catch (err) {
+    console.error("[API] List sessions failed:", err);
+    res.status(500).json({ error: "Could not list sessions", details: err.message });
+  }
 });
 
 router.post("/sessions/join", async (req, res) => {
@@ -278,7 +319,7 @@ router.get("/voice/quota", async (req, res) => {
 });
 
 // -------------------------------------------------------------------------
-// Chat (care assistant) — uses ASI:One asi1-ultra by default, Anthropic fallback
+// Chat (care assistant) — uses ASI:One asi1-ultra by default
 // -------------------------------------------------------------------------
 router.post("/chat", async (req, res) => {
   const { message, session_id, language_code, patient_context, chat_history, surface } = req.body;

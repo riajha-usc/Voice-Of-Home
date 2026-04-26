@@ -148,6 +148,16 @@ export function SessionProvider({ children }) {
     setSessionId(s.session_id);
     setSessionRecord(s);
     if (s.language_code) setLanguage(s.language_code);
+    if (s.patient_id) {
+      setPatientId(s.patient_id);
+      try { setPatient(await api.getPatient(s.patient_id)); } catch {}
+    }
+    if (s.hospital_id) {
+      try { setHospital(await api.getHospital(s.hospital_id)); } catch {}
+    }
+    if (s.assigned_doctor_id) {
+      try { setDoctor(await api.getDoctor(s.assigned_doctor_id)); } catch {}
+    }
     storeSessionId(s.session_id);
     setOnboarded(true);
     return s;

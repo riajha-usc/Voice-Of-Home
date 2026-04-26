@@ -101,7 +101,7 @@ function handleToolCall(name, args) {
       .replace(/\b(subsequent to)\b/gi, "after")
       .replace(/\b(approximately)\b/gi, "about")
       .replace(/\b(milligrams)\b/gi, "mg");
-    return { content: [{ type: "text", text: `Simplified: ${simplified}\nTarget language: ${args.target_language || "not specified"}\nNote: Full translation requires Gemini API integration.` }] };
+    return { content: [{ type: "text", text: `Simplified: ${simplified}\nTarget language: ${args.target_language || "not specified"}\nNote: Full translation requires care-model integration.` }] };
   }
 
   if (name === "list_supported_languages") {

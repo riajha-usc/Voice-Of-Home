@@ -32,10 +32,14 @@ export const api = {
   getDoctor: (id) => request(`/doctors/${id}`),
 
   // Patients
+  listPatients: (doctorId, hospitalId) =>
+    request(`/patients?${doctorId ? `doctor_id=${doctorId}` : `hospital_id=${hospitalId}`}`),
   createPatient: (data) => request("/patients", { method: "POST", body: data }),
   getPatient: (id) => request(`/patients/${id}`),
 
   // Sessions (the persistence layer)
+  listSessions: (doctorId, hospitalId, limit) =>
+    request(`/sessions?${doctorId ? `doctor_id=${doctorId}` : `hospital_id=${hospitalId}`}${limit ? `&limit=${limit}` : ""}`),
   createSession: (data) => request("/sessions", { method: "POST", body: data }),
   getSession: (id) => request(`/sessions/${id}`),
   joinSession: (joinCode) => request("/sessions/join", { method: "POST", body: { join_code: joinCode } }),

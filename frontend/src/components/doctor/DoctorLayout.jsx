@@ -8,9 +8,9 @@ import { useSession } from "../../hooks/useSession";
 const sidebarItems = [
   { to: "/doctor", icon: Home, label: "Home", end: true },
   { to: "/doctor/patients", icon: Users, label: "Active Patients" },
-  { to: "/doctor", icon: MessageSquare, label: "Messages", badge: 6, end: true },
-  { to: "/doctor", icon: Leaf, label: "Diet Reviews", badge: 3, end: true },
-  { to: "/doctor", icon: Bell, label: "Alerts", badge: 1, badgeType: "danger", end: true },
+  { to: "/doctor", icon: MessageSquare, label: "Messages", end: true },
+  { to: "/doctor", icon: Leaf, label: "Diet Reviews", end: true },
+  { to: "/doctor", icon: Bell, label: "Alerts", end: true },
   { to: "/doctor/search", icon: Search, label: "Search", end: true },
   { to: "/doctor", icon: BookOpen, label: "Resources", end: true },
   { to: "/doctor", icon: Settings, label: "Settings", end: true },

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, Phone, FileText, ClipboardList, Users as UsersIcon,
   AlertTriangle, Check, X, Edit3, Leaf, Volume2, Search, Shield,
@@ -341,8 +341,11 @@ function EmptyState({ icon: Icon, text, action, actionLabel }) {
 /*  Main Patient Detail                                                */
 /* ------------------------------------------------------------------ */
 export default function DoctorPatientDetail() {
-  const { session } = useSession();
+  const { session: baseSession } = useSession();
   const navigate = useNavigate();
+  const { id: routePatientId } = useParams();
+  const [searchParams] = useSearchParams();
+  const routeSessionId = searchParams.get("session");
 
   const [researchQuery, setResearchQuery] = useState("");
   const [isResearching, setIsResearching] = useState(false);
@@ -350,10 +353,71 @@ export default function DoctorPatientDetail() {
   const [feedbackStats, setFeedbackStats] = useState(null);
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
   const [voiceModalMember, setVoiceModalMember] = useState(null);
+  const [loadedDetail, setLoadedDetail] = useState(null);
 
   useEffect(() => {
     api.feedbackStats().then(setFeedbackStats).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDetail() {
+      if (!routeSessionId && !routePatientId) {
+        setLoadedDetail(null);
+        return;
+      }
+
+      try {
+        const loadedSession = routeSessionId ? await api.getSession(routeSessionId) : null;
+        const patientId = loadedSession?.patient_id || routePatientId;
+        const patient = patientId ? await api.getPatient(patientId) : null;
+        const hospitalId = loadedSession?.hospital_id || patient?.hospital_id;
+        const doctorId = loadedSession?.assigned_doctor_id || patient?.assigned_doctor_id;
+        const [hospital, doctor] = await Promise.all([
+          hospitalId ? api.getHospital(hospitalId).catch(() => null) : Promise.resolve(null),
+          doctorId ? api.getDoctor(doctorId).catch(() => null) : Promise.resolve(null),
+        ]);
+
+        if (cancelled) return;
+
+        if (!loadedSession) {
+          setLoadedDetail(null);
+          return;
+        }
+
+        setLoadedDetail({
+          sessionId: loadedSession.session_id || "",
+          joinCode: loadedSession.join_code || "",
+          language: loadedSession.language_code || patient?.language_code || "en",
+          patientId: patient?.id || loadedSession.patient_id || null,
+          patient,
+          hospital,
+          doctor,
+          patientContext: {
+            language: patient?.language_name || loadedSession.language_name || loadedSession.language_code || "en",
+            conditions: patient?.conditions || [],
+            medications: patient?.medications || [],
+            dietary_restrictions: patient?.dietary_restrictions || [],
+          },
+          careCircle: loadedSession.care_circle || [],
+          symptomInsights: loadedSession.symptom_insights || [],
+          dietaryResults: loadedSession.dietary_results || [],
+          voiceMessages: loadedSession.voice_messages || [],
+          chatHistory: loadedSession.chat_history || [],
+          mentalHealthCheckins: loadedSession.mental_health_checkins || [],
+        });
+      } catch (err) {
+        console.error("[DoctorPatientDetail] load failed:", err);
+        if (!cancelled) setLoadedDetail(null);
+      }
+    }
+
+    loadDetail();
+    return () => { cancelled = true; };
+  }, [routePatientId, routeSessionId]);
+
+  const session = loadedDetail || baseSession;
 
   const handleResearch = async () => {
     if (!researchQuery.trim()) return;

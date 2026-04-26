@@ -1,11 +1,11 @@
 // Mental health service — pattern lookup over the personas JSON.
 //
-// This is a deliberately simple matcher today. When the cleaned 600-person
-// dataset lands at shared/datasets/mental-health-cleaned.json, this service
-// will additionally:
-//   1. Embed each row's `narrative` field via Gemini text-embedding-004
-//   2. Store rows in MongoDB collection `mental_health_records`
-//   3. Use $vectorSearch over that collection for semantic pattern lookup
+// This is a deliberately simple matcher today. To finish the vector DB path,
+// the remaining work is:
+//   1. Add the cleaned dataset at shared/datasets/mental-health-cleaned.json
+//   2. Embed each row's `narrative` field
+//   3. Store rows in MongoDB collection `mental_health_records`
+//   4. Use $vectorSearch over that collection for semantic pattern lookup
 //
 // For now, it does substring scoring against the persona phrases. Same
 // interface — when the dataset is wired, only this service changes.
@@ -31,7 +31,7 @@ function datasetStats() {
   return {
     ...data._dataset_meta,
     persona_count: data.personas.length,
-    note: "Pattern lookup currently runs against the persona phrases. Add shared/datasets/mental-health-cleaned.json to enable full 600-record vector search.",
+    note: "Pattern lookup currently runs against persona phrases. Remaining vector DB work: add the cleaned dataset, generate embeddings, store them in mental_health_records, and create Atlas Vector Search for semantic lookup.",
   };
 }
 
