@@ -1,8 +1,17 @@
+// const express = require("express");
+// const cors = require("cors");
+// const path = require("path");
+// require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
+
 
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
+
+// Only load dotenv if we are NOT in production
+if (process.env.NODE_ENV !== 'production') {
+  require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
+}
 
 const { connectDB } = require("../config/database");
 const { initGemini } = require("./services/gemini-service");
@@ -13,7 +22,12 @@ const apiRoutes = require("./routes/api");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173" }));
+const frontendUrl = process.env.FRONTEND_URL;
+app.use(cors({ 
+  origin: frontendUrl, 
+  credentials: true 
+}));
+console.log(`  CORS enabled for: ${frontendUrl}`);
 app.use(express.json({ limit: "10mb" }));
 
 app.use("/audio", express.static(path.join(__dirname, "../audio")));
