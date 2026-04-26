@@ -3,7 +3,10 @@ import json
 import asyncio
 from datetime import datetime, timezone
 from uuid import uuid4
+from dotenv import load_dotenv
 from uagents import Agent, Context, Protocol
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 from uagents_core.contrib.protocols.chat import (
     ChatAcknowledgement,
     ChatMessage,
@@ -14,13 +17,14 @@ from uagents_core.contrib.protocols.chat import (
 from runtime import get_agent_port
 
 SEED = os.getenv("FETCH_AGENT_SEED_PHRASE", "orchestrator_agent_seed_voh")
-
-asyncio.set_event_loop(asyncio.new_event_loop())
+AGENTVERSE_API_KEY = os.getenv("FETCH_AGENTVERSE_API_KEY", "")
+PUBLIC_URL = os.getenv("PUBLIC_URL", "")
 
 agent = Agent(
     name="VoH Orchestrator Agent",
     seed=SEED + "_orchestrator",
-    port=get_agent_port(8004),
+    port=8000,
+    #endpoint=[f"{PUBLIC_URL}/submit"] if PUBLIC_URL else ["http://127.0.0.1:8004/submit"],
     mailbox=True,
     publish_agent_details=True,
 )
@@ -29,7 +33,7 @@ chat_proto = Protocol(spec=chat_protocol_spec)
 def create_text_chat(text, end_session=False):
     content = [TextContent(type="text", text=text)]
     if end_session:
-        content.append(EndSessionContent(type="end-session", reason="Complete"))
+        content.append(EndSessionContent(type="end-session"))
     return ChatMessage(
         timestamp=datetime.now(timezone.utc),
         msg_id=uuid4(),
@@ -46,6 +50,10 @@ def classify_intent(text):
     if any(w in t for w in ["help", "what", "how", "can", "should", "medication", "pill", "drug"]):
         return "care_chat"
     return "general"
+@chat_proto.on_message(ChatAcknowledgement)
+async def handle_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
+    pass
+
 @chat_proto.on_message(ChatMessage)
 async def handle_chat(ctx: Context, sender: str, msg: ChatMessage):
     await ctx.send(

@@ -3,7 +3,10 @@ import json
 import asyncio
 from datetime import datetime, timezone
 from uuid import uuid4
+from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Protocol
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 from uagents_core.contrib.protocols.chat import (
     ChatAcknowledgement,
     ChatMessage,
@@ -14,13 +17,13 @@ from uagents_core.contrib.protocols.chat import (
 from runtime import get_agent_port
 
 SEED = os.getenv("FETCH_AGENT_SEED_PHRASE", "dietary_agent_seed_voh")
-
-asyncio.set_event_loop(asyncio.new_event_loop())
+AGENTVERSE_API_KEY = os.getenv("FETCH_AGENTVERSE_API_KEY", "")
 
 agent = Agent(
     name="VoH Dietary Agent",
     seed=SEED + "_dietary",
-    port=get_agent_port(8002),
+    port=8002,
+    #endpoint=["http://127.0.0.1:8002/submit"],
     mailbox=True,
     publish_agent_details=True,
 )
@@ -62,7 +65,7 @@ DIETARY_DB = {
 def create_text_chat(text, end_session=False):
     content = [TextContent(type="text", text=text)]
     if end_session:
-        content.append(EndSessionContent(type="end-session", reason="Analysis complete"))
+        content.append(EndSessionContent(type="end-session"))
     return ChatMessage(
         timestamp=datetime.now(timezone.utc),
         msg_id=uuid4(),
@@ -74,6 +77,10 @@ def find_dish(query):
         if key in q or dish["dish_name"].lower() in q or dish["dish_name_english"].lower() in q:
             return dish
     return None
+@chat_proto.on_message(ChatAcknowledgement)
+async def handle_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
+    pass
+
 @chat_proto.on_message(ChatMessage)
 async def handle_chat(ctx: Context, sender: str, msg: ChatMessage):
     await ctx.send(

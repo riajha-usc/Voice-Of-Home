@@ -4,7 +4,10 @@ import asyncio
 from datetime import datetime, timezone
 from uuid import uuid4
 from pathlib import Path
+from dotenv import load_dotenv
 from uagents import Agent, Context, Model, Protocol
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 from uagents_core.contrib.protocols.chat import (
     ChatAcknowledgement,
     ChatMessage,
@@ -15,13 +18,13 @@ from uagents_core.contrib.protocols.chat import (
 from runtime import get_agent_port
 
 SEED = os.getenv("FETCH_AGENT_SEED_PHRASE", "cultural_nlp_agent_seed_voh")
-
-asyncio.set_event_loop(asyncio.new_event_loop())
+AGENTVERSE_API_KEY = os.getenv("FETCH_AGENTVERSE_API_KEY", "")
 
 agent = Agent(
     name="VoH Cultural NLP Agent",
     seed=SEED,
-    port=get_agent_port(8001),
+    port=8001,
+    #endpoint=["http://127.0.0.1:8001/submit"],
     mailbox=True,
     publish_agent_details=True,
 )
@@ -58,12 +61,16 @@ class SymptomResponse(Model):
 def create_text_chat(text, end_session=False):
     content = [TextContent(type="text", text=text)]
     if end_session:
-        content.append(EndSessionContent(type="end-session", reason="Analysis complete"))
+        content.append(EndSessionContent(type="end-session"))
     return ChatMessage(
         timestamp=datetime.now(timezone.utc),
         msg_id=uuid4(),
         content=content,
     )
+@chat_proto.on_message(ChatAcknowledgement)
+async def handle_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
+    pass
+
 @chat_proto.on_message(ChatMessage)
 async def handle_chat(ctx: Context, sender: str, msg: ChatMessage):
     ctx.logger.info(f"Received message from {sender}")
