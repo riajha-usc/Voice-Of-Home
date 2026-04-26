@@ -11,6 +11,7 @@ from uagents_core.contrib.protocols.chat import (
     TextContent,
     chat_protocol_spec,
 )
+from runtime import get_agent_port
 
 SEED = os.getenv("FETCH_AGENT_SEED_PHRASE", "dietary_agent_seed_voh")
 
@@ -19,7 +20,7 @@ asyncio.set_event_loop(asyncio.new_event_loop())
 agent = Agent(
     name="VoH Dietary Agent",
     seed=SEED + "_dietary",
-    port=8002,
+    port=get_agent_port(8002),
     mailbox=True,
     publish_agent_details=True,
 )

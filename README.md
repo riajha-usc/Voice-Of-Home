@@ -27,7 +27,20 @@ Voices of Home bridges the cultural context gap between immigrant patients and t
 
 - The four Fetch.ai agents live in [`/Users/riajha/Voice-Of-Home/agents`](/Users/riajha/Voice-Of-Home/agents) and publish chat manifests with mailbox enabled.
 - Run them together with `npm run dev:agents`.
-- To appear in Agentverse search, they still need to be running with valid Fetch/uAgents credentials and reachable through the Fetch mailbox/almanac network at runtime.
+- To deploy stable public URLs on Google App Engine, use `npm run deploy:agents` to publish four services: `cultural-nlp`, `dietary`, `voice`, and `orchestrator`.
+- After deploy, copy the service URLs into `.env` and run `npm run register:agents`.
+- The registration script uses the same seeds as the running agents, so the Agentverse address matches each uAgent identity.
+
+## Agent Deployments
+
+Each agent can run as its own App Engine service with a stable URL:
+
+- `https://cultural-nlp-dot-YOUR_PROJECT_ID.REGION_ID.r.appspot.com`
+- `https://dietary-dot-YOUR_PROJECT_ID.REGION_ID.r.appspot.com`
+- `https://voice-dot-YOUR_PROJECT_ID.REGION_ID.r.appspot.com`
+- `https://orchestrator-dot-YOUR_PROJECT_ID.REGION_ID.r.appspot.com`
+
+The local runner still uses separate ports (`8001` to `8004`), but each agent now reads `AGENT_PORT` or `PORT`, so the same code works locally and in App Engine.
 
 ## Real Data Model (not demo)
 

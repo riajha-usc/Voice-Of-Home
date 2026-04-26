@@ -1,0 +1,7 @@
+runtime: python311
+service: cultural-nlp
+
+entrypoint: python cultural_nlp_agent.py
+
+env_variables:
+  PYTHONUNBUFFERED: "1"

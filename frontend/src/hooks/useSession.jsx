@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, useRef, useCallback } from "react";
+import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { api } from "../utils/api";
 
 const SessionContext = createContext(null);
@@ -29,7 +29,6 @@ export function SessionProvider({ children }) {
   const [sessionRecord, setSessionRecord] = useState(null);
   const [isHydrating, setIsHydrating] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
-  const pollRef = useRef(null);
 
   const refreshSession = useCallback(async () => {
     if (!sessionId) return null;
@@ -89,14 +88,6 @@ export function SessionProvider({ children }) {
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // 5-second polling on the session record (real-time care circle updates,
-  // doctor sees new family members, family sees new insights, etc.)
-  useEffect(() => {
-    if (!sessionId) return;
-    pollRef.current = setInterval(() => { refreshSession(); }, 5000);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [sessionId, refreshSession]);
 
   // ---------------------------------------------------------------------------
   // Onboarding flow: create patient + session
@@ -178,8 +169,8 @@ export function SessionProvider({ children }) {
   }, []);
 
   // ---------------------------------------------------------------------------
-  // Mutations — these all write to the backend, then refresh the record so
-  // every device on the same session sees the update within 5s of polling.
+  // Mutations — these all write to the backend, then refresh the record once
+  // so the current tab picks up the saved result immediately.
   // ---------------------------------------------------------------------------
   const updateLanguage = (code) => {
     setLanguage(code);

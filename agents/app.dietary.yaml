@@ -1,0 +1,7 @@
+runtime: python311
+service: dietary
+
+entrypoint: python dietary_agent.py
+
+env_variables:
+  PYTHONUNBUFFERED: "1"

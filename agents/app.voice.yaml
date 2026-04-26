@@ -1,0 +1,7 @@
+runtime: python311
+service: voice
+
+entrypoint: python voice_agent.py
+
+env_variables:
+  PYTHONUNBUFFERED: "1"

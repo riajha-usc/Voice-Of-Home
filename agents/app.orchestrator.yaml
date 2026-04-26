@@ -1,0 +1,7 @@
+runtime: python311
+service: orchestrator
+
+entrypoint: python orchestrator_agent.py
+
+env_variables:
+  PYTHONUNBUFFERED: "1"
