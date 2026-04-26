@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://voh-backend.onrender.com/api/:path*"
+    }
+  ]
+}
